@@ -47,6 +47,20 @@
 - [x] Simplify commentary panel — collapsed-by-default cards (step name + narrative + issue count badge)
 - [x] Click-to-expand for full observations/issues/positives
 - [x] Eliminate scroll mismatch between screenshot viewport and commentary panel
+- [x] Multi-screenshot capture — 2-3 screenshots per step (initial + after scroll + after interaction)
+- [x] Crossfade transitions between screenshots (300ms opacity fade, `onLoad`-gated)
+- [x] "Scrolling..." indicator in browser footer during transitions
+- [x] SSE streams screenshots individually via `onScreenshot` callback with index
+
+### AI Accuracy
+- [x] Send screenshots to Claude via multimodal API (image content blocks in `generateStepCommentary` and `generateAuditReport`)
+- [x] Update system prompts to be screenshot-first with visual accuracy guardrails
+- [x] Add "CRITICAL ACCURACY RULES" — never claim something is missing if visible in screenshot
+- [x] Add `navigationConfidence` + `navigationMethod` fields to `CrawlStep`
+- [x] Return navigation metadata from `findCollectionsLink` / `findProductLink` (high/medium/low)
+- [x] Add `detectEmptyState(html)` — downgrades confidence when page shows 404/empty indicators
+- [x] Pass navigation context to AI prompt so it doesn't blame stores for crawler navigation issues
+- [x] Add "AUTOMATED BROWSING AWARENESS" block to both system prompts (empty states, failed add-to-cart, popup-blocked content)
 
 ### Documentation
 - [x] Create `CLAUDE.md` with architecture, commands, design system, data flow

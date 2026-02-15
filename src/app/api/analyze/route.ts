@@ -47,19 +47,15 @@ export async function POST(request: NextRequest) {
             });
           },
 
+          onScreenshot: (step, screenshot, url, index) => {
+            sendEvent({
+              type: "screenshot",
+              data: { step, screenshot, url, index },
+            });
+          },
+
           onStepComplete: async (step: CrawlStep) => {
             allSteps.push(step);
-
-            if (step.screenshot) {
-              sendEvent({
-                type: "screenshot",
-                data: {
-                  step: step.name,
-                  screenshot: step.screenshot,
-                  url: step.url || "",
-                },
-              });
-            }
 
             try {
               const commentary = await generateStepCommentary(

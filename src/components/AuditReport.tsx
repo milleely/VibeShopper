@@ -331,10 +331,11 @@ function BrowsingSessionView({
   onScreenshotClick: (s: ScreenshotData) => void;
 }) {
   const commentaryMap = new Map(commentaries.map((c) => [c.step, c]));
+  const uniqueByStep = [...new Map(screenshots.map((s) => [s.step, s])).values()];
 
   return (
     <div className="space-y-6">
-      {screenshots.map((s) => {
+      {uniqueByStep.map((s) => {
         const commentary = commentaryMap.get(s.step);
         return (
           <div
@@ -464,7 +465,8 @@ function ScreenshotStrip({
 }) {
   if (screenshots.length === 0) return null;
 
-  const visible = screenshots.slice(0, 5);
+  const uniqueByStep = [...new Map(screenshots.map((s) => [s.step, s])).values()];
+  const visible = uniqueByStep.slice(0, 5);
 
   return (
     <section>

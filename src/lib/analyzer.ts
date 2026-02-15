@@ -25,11 +25,23 @@ function parseJsonResponse(text: string): unknown {
 
 const STEP_COMMENTARY_SYSTEM = `You are a senior e-commerce conversion specialist who has audited 500+ Shopify stores. You are browsing a store as a first-time customer.
 
-Your job: Narrate what you see at each step. Be specific — reference actual elements, text, images, and layout from the HTML. Never give generic advice.
+You are provided with SCREENSHOTS and HTML of each page. Base your observations primarily on what is VISIBLE in the screenshots — the screenshots are the ground truth of what a customer sees. Use HTML for supporting detail only (alt text, meta tags, hidden elements).
+
+CRITICAL ACCURACY RULES:
+- NEVER claim something is missing if you can see it in the screenshot. If a cart drawer is open, acknowledge it. If product images clearly show the product category, state it. If a checkout button is visible, do not flag it as absent.
+- Only flag issues that are genuinely problematic from what you can see. A shop owner will read your analysis alongside these exact screenshots — your findings must match the visual evidence.
+- Write your narrative as if you are looking at the page, not reading code.
+
+AUTOMATED BROWSING AWARENESS:
+You are being shown pages visited by an automated browser agent. Some issues you see may be caused by the automated browsing itself, NOT by actual store problems. You MUST distinguish between real store issues and crawler artifacts:
+- If a page shows an empty state, error page, or "nothing to see here" message, check the navigationConfidence field. If it is "low" or "medium", this is likely a crawler navigation failure, NOT a store bug. Do NOT report it as a store issue. Instead note: "Page may not have loaded correctly during automated browsing — manual verification recommended."
+- If the cart is empty after the add-to-cart step, the automated agent likely failed to complete the purchase flow (e.g., did not select a required variant). Do NOT report "empty cart" or "missing cart contents" as a store issue. Instead note: "Automated agent was unable to complete add-to-cart — likely due to variant selection requirements."
+- If popups or overlays are blocking content, report the popup as an issue (intrusive overlay), but do NOT report the blocked content as missing.
+- Only report issues you are confident reflect the ACTUAL customer experience, not artifacts of automated browsing.
 
 For each page, provide:
-1. observations: 3-5 specific things you notice (quote actual text/elements)
-2. issues: Problems hurting conversion (each with severity, category, one-sentence fix)
+1. observations: 3-5 specific things you notice (describe what you SEE)
+2. issues: Real problems hurting conversion (each with severity, category, one-sentence fix)
 3. positives: 1-2 things done well
 4. narrative: One first-person sentence as a shopper
 
@@ -67,14 +79,28 @@ export async function generateStepCommentary(
     messages: [
       {
         role: "user",
-        content: `Store: ${storeUrl}
+        content: [
+          ...(step.screenshots ?? []).map((s) => ({
+            type: "image" as const,
+            source: {
+              type: "base64" as const,
+              media_type: "image/png" as const,
+              data: s,
+            },
+          })),
+          {
+            type: "text" as const,
+            text: `Store: ${storeUrl}
 Current page: ${step.label} (${step.url})
+Navigation: ${step.navigationMethod || "unknown"} (confidence: ${step.navigationConfidence || "unknown"})
 Context: ${stepContext[step.name]}
 
 Page HTML (trimmed):
-${step.html?.slice(0, 30000) || "HTML not available"}
-${step.error ? `\nNote: ${step.error}. Factor this into your analysis — do not report false findings based on incomplete cart data.` : ""}
-Analyze this page. JSON only.`,
+${step.html?.slice(0, 20000) || "HTML not available"}
+${step.error ? `\nNote: ${step.error}. Factor this into your analysis — do not report false findings based on incomplete data.` : ""}${step.navigationConfidence !== "high" ? `\nIMPORTANT: This page was reached via ${step.navigationMethod}. If the page appears empty or broken, this is likely a crawler navigation issue rather than a store problem. Frame findings accordingly — do not blame the store for pages our crawler may have reached incorrectly.` : ""}
+Analyze this page based on the screenshots above and the HTML. JSON only.`,
+          },
+        ],
       },
     ],
   });
@@ -108,11 +134,20 @@ Analyze this page. JSON only.`,
 
 const AUDIT_REPORT_SYSTEM = `You are a senior e-commerce conversion specialist writing a comprehensive store audit after browsing an entire Shopify store as a first-time customer.
 
+You are provided with screenshots from each page of the browsing session. Base your audit on what you can SEE in the screenshots combined with the HTML analysis. Your findings must be visually verifiable — a shop owner will see these screenshots alongside your report. Never contradict what is clearly visible in the images.
+
 Your audit must be:
-- SPECIFIC: Every finding references something concrete you observed
+- SPECIFIC: Every finding references something concrete you observed in the screenshots or HTML
 - ACTIONABLE: Every issue includes a one-sentence fix
 - PRIORITIZED: Issues ranked by revenue impact
-- HONEST: Acknowledge what's done well
+- HONEST: Acknowledge what's done well — if the store looks good visually, say so
+
+AUTOMATED BROWSING AWARENESS:
+You are being shown pages visited by an automated browser agent. Some issues you see may be caused by the automated browsing itself, NOT by actual store problems. You MUST distinguish between real store issues and crawler artifacts:
+- If a page shows an empty state, error page, or "nothing to see here" message, check the navigationConfidence field. If it is "low" or "medium", this is likely a crawler navigation failure, NOT a store bug. Do NOT report it as a store issue. Instead note: "Page may not have loaded correctly during automated browsing — manual verification recommended."
+- If the cart is empty after the add-to-cart step, the automated agent likely failed to complete the purchase flow (e.g., did not select a required variant). Do NOT report "empty cart" or "missing cart contents" as a store issue. Instead note: "Automated agent was unable to complete add-to-cart — likely due to variant selection requirements."
+- If popups or overlays are blocking content, report the popup as an issue (intrusive overlay), but do NOT report the blocked content as missing.
+- Only report issues you are confident reflect the ACTUAL customer experience, not artifacts of automated browsing.
 
 Scoring: 90-100 Excellent, 75-89 Good, 60-74 Fair, 40-59 Poor, 0-39 Critical
 
@@ -183,7 +218,26 @@ HTML excerpt: ${step.html?.slice(0, 15000) || "Not available"}
     messages: [
       {
         role: "user",
-        content: `Full audit for: ${storeUrl}\n\nBrowsing session:\n${stepSummaries}\n\nSynthesize into a comprehensive audit. Top 3 quickWins = highest impact, lowest effort. JSON only.`,
+        content: [
+          ...steps.flatMap((step) => {
+            const lastScreenshot = step.screenshots?.[step.screenshots.length - 1];
+            if (!lastScreenshot) return [];
+            return [
+              {
+                type: "image" as const,
+                source: {
+                  type: "base64" as const,
+                  media_type: "image/png" as const,
+                  data: lastScreenshot,
+                },
+              },
+            ];
+          }),
+          {
+            type: "text" as const,
+            text: `Full audit for: ${storeUrl}\n\nBrowsing session:\n${stepSummaries}\n\nThe screenshots above show each page in order. Synthesize into a comprehensive audit. Top 3 quickWins = highest impact, lowest effort. JSON only.`,
+          },
+        ],
       },
     ],
   });

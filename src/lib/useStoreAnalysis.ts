@@ -12,6 +12,7 @@ export interface ScreenshotData {
   step: CrawlStepName;
   screenshot: string;
   url: string;
+  index: number;
 }
 
 export interface AnalysisState {

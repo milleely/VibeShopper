@@ -14,15 +14,17 @@ export interface CrawlStep {
   label: string;
   description: string;
   url?: string;
-  screenshot?: string;
+  screenshots?: string[];
   html?: string;
   timestamp?: number;
   error?: string;
+  navigationConfidence?: "high" | "medium" | "low";
+  navigationMethod?: string;
 }
 
 export const CRAWL_STEPS: Omit<
   CrawlStep,
-  "url" | "screenshot" | "html" | "timestamp"
+  "url" | "screenshots" | "html" | "timestamp" | "navigationConfidence" | "navigationMethod"
 >[] = [
   {
     name: "homepage",
@@ -112,7 +114,7 @@ export type SSEEvent =
     }
   | {
       type: "screenshot";
-      data: { step: CrawlStepName; screenshot: string; url: string };
+      data: { step: CrawlStepName; screenshot: string; url: string; index: number };
     }
   | { type: "commentary"; data: StepCommentary }
   | { type: "report"; data: AuditReport }

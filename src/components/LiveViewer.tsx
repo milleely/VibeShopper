@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { CRAWL_STEPS } from "@/lib/types";
 import type { CrawlStepName, StepCommentary, StepIssue } from "@/lib/types";
 import type { ScreenshotData } from "@/lib/useStoreAnalysis";
@@ -66,7 +66,7 @@ function StepIndicator({
   state: "completed" | "active" | "pending";
 }) {
   return (
-    <div className="flex flex-col items-center gap-1.5 min-w-0">
+    <div className="flex flex-col items-center gap-1.5 min-w-[100px]">
       {/* Circle */}
       <div
         className={`
@@ -94,7 +94,7 @@ function StepIndicator({
       {/* Label */}
       <span
         className={`
-          text-[11px] leading-tight text-center max-w-[90px] truncate
+          text-[11px] leading-tight text-center
           ${
             state === "completed"
               ? "text-primary font-medium"
@@ -342,6 +342,33 @@ export default function LiveViewer({
 
   const currentUrl = latestScreenshot?.url ?? "";
 
+  // -- Crossfade state -------------------------------------------------------
+  const [visibleSrc, setVisibleSrc] = useState<string | null>(null);
+  const [fadingIn, setFadingIn] = useState(false);
+  const prevSrcRef = useRef<string | null>(null);
+  const nextSrcRef = useRef<string | null>(null);
+
+  const latestSrc = latestScreenshot
+    ? `data:image/png;base64,${latestScreenshot.screenshot}`
+    : null;
+
+  useEffect(() => {
+    if (!latestSrc || latestSrc === nextSrcRef.current) return;
+    // New screenshot arrived — start crossfade
+    prevSrcRef.current = visibleSrc;
+    nextSrcRef.current = latestSrc;
+    setFadingIn(false);
+  }, [latestSrc, visibleSrc]);
+
+  const handleImageLoaded = useCallback(() => {
+    setFadingIn(true);
+    // After transition, promote the new image to the visible layer
+    const timeout = setTimeout(() => {
+      setVisibleSrc(nextSrcRef.current);
+    }, 350);
+    return () => clearTimeout(timeout);
+  }, []);
+
   // Whether the active step is still awaiting its commentary
   const isStepPending =
     currentStep !== null && !completedSteps.has(currentStep);
@@ -422,22 +449,33 @@ export default function LiveViewer({
             </div>
           </div>
 
-          {/* Viewport */}
-          <div className="flex-1 overflow-auto bg-[#f6f6f7]">
-            {latestScreenshot ? (
+          {/* Viewport — crossfade between screenshots */}
+          <div className="flex-1 overflow-auto bg-[#f6f6f7] relative">
+            {!latestScreenshot && <BrowserSkeleton />}
+
+            {/* Bottom layer: previously visible screenshot */}
+            {visibleSrc && (
               <img
-                src={`data:image/png;base64,${latestScreenshot.screenshot}`}
-                alt={`Screenshot of ${latestScreenshot.step} step`}
+                src={visibleSrc}
+                alt=""
                 className="w-full h-auto block"
               />
-            ) : (
-              <BrowserSkeleton />
+            )}
+
+            {/* Top layer: new screenshot fading in */}
+            {nextSrcRef.current && nextSrcRef.current !== visibleSrc && (
+              <img
+                src={nextSrcRef.current}
+                alt={latestScreenshot ? `Screenshot of ${latestScreenshot.step} step` : ""}
+                className={`absolute inset-0 w-full h-auto block transition-opacity duration-300 ${fadingIn ? "opacity-100" : "opacity-0"}`}
+                onLoad={handleImageLoaded}
+              />
             )}
           </div>
 
           {/* Step description footer */}
           {currentStepLabel && (
-            <div className="border-t border-border-default bg-[#fafafa] px-4 py-2">
+            <div className="border-t border-border-default bg-[#fafafa] px-4 py-2 flex items-center justify-between">
               <p className="text-xs text-text-secondary">
                 <span className="font-medium text-text-primary">
                   {currentStepLabel}
@@ -445,6 +483,11 @@ export default function LiveViewer({
                 {" — "}
                 {currentStepDescription}
               </p>
+              {!fadingIn && nextSrcRef.current !== visibleSrc && latestScreenshot && (
+                <span className="text-[11px] text-text-disabled animate-pulse">
+                  Scrolling...
+                </span>
+              )}
             </div>
           )}
         </div>

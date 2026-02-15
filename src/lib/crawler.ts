@@ -7,6 +7,12 @@ export interface CrawlCallbacks {
     label: string,
     description: string
   ) => void;
+  onScreenshot: (
+    step: CrawlStepName,
+    screenshot: string,
+    url: string,
+    index: number
+  ) => void;
   onStepComplete: (step: CrawlStep) => Promise<void> | void;
   onError: (step: CrawlStepName, error: string) => void;
 }
@@ -65,6 +71,18 @@ export async function crawlStore(
 
 // --- Step implementations ---
 
+/** Capture a screenshot, emit it via callback, and return the base64 data. */
+async function captureAndEmit(
+  page: Page,
+  stepName: CrawlStepName,
+  index: number,
+  cb: CrawlCallbacks
+): Promise<string> {
+  const screenshot = await captureScreenshot(page);
+  cb.onScreenshot(stepName, screenshot, page.url(), index);
+  return screenshot;
+}
+
 async function crawlHomepage(
   page: Page,
   storeUrl: string,
@@ -76,15 +94,24 @@ async function crawlHomepage(
   try {
     await page.goto(storeUrl, { waitUntil: "networkidle" });
     await dismissOverlays(page);
-    const screenshot = await captureScreenshot(page);
+
+    const screenshots: string[] = [];
+    screenshots.push(await captureAndEmit(page, "homepage", 0, cb));
+
+    await page.evaluate(() => window.scrollBy(0, 600));
+    await page.waitForTimeout(500);
+    screenshots.push(await captureAndEmit(page, "homepage", 1, cb));
+
     const html = await captureHtml(page);
 
     const step: CrawlStep = {
       ...stepDef,
       url: page.url(),
-      screenshot,
+      screenshots,
       html,
       timestamp: Date.now(),
+      navigationConfidence: "high",
+      navigationMethod: `direct URL ${storeUrl}`,
     };
     await cb.onStepComplete(step);
     return step;
@@ -92,7 +119,7 @@ async function crawlHomepage(
     const error =
       err instanceof Error ? err.message : "Failed to load homepage";
     cb.onError("homepage", error);
-    return { ...stepDef, error, timestamp: Date.now() };
+    return { ...stepDef, error, timestamp: Date.now(), navigationConfidence: "low", navigationMethod: "navigation failed" };
   }
 }
 
@@ -105,18 +132,28 @@ async function crawlCollections(
   cb.onStepStart("collections", stepDef.label, stepDef.description);
 
   try {
-    const collectionsUrl = await findCollectionsLink(page, storeUrl);
-    await page.goto(collectionsUrl, { waitUntil: "networkidle" });
+    const nav = await findCollectionsLink(page, storeUrl);
+    await page.goto(nav.url, { waitUntil: "networkidle" });
     await dismissOverlays(page);
-    const screenshot = await captureScreenshot(page);
+
+    const screenshots: string[] = [];
+    screenshots.push(await captureAndEmit(page, "collections", 0, cb));
+
+    await page.evaluate(() => window.scrollBy(0, 600));
+    await page.waitForTimeout(500);
+    screenshots.push(await captureAndEmit(page, "collections", 1, cb));
+
     const html = await captureHtml(page);
+    const confidence = detectEmptyState(html) ? "low" as const : nav.confidence;
 
     const step: CrawlStep = {
       ...stepDef,
       url: page.url(),
-      screenshot,
+      screenshots,
       html,
       timestamp: Date.now(),
+      navigationConfidence: confidence,
+      navigationMethod: nav.method,
     };
     await cb.onStepComplete(step);
     return step;
@@ -124,7 +161,7 @@ async function crawlCollections(
     const error =
       err instanceof Error ? err.message : "Failed to load collections";
     cb.onError("collections", error);
-    return { ...stepDef, error, timestamp: Date.now() };
+    return { ...stepDef, error, timestamp: Date.now(), navigationConfidence: "low", navigationMethod: "navigation failed" };
   }
 }
 
@@ -137,18 +174,33 @@ async function crawlProduct(
   cb.onStepStart("product", stepDef.label, stepDef.description);
 
   try {
-    const productUrl = await findProductLink(page, storeUrl);
-    await page.goto(productUrl, { waitUntil: "networkidle" });
+    const nav = await findProductLink(page, storeUrl);
+    await page.goto(nav.url, { waitUntil: "networkidle" });
     await dismissOverlays(page);
-    const screenshot = await captureScreenshot(page);
+
+    const screenshots: string[] = [];
+    screenshots.push(await captureAndEmit(page, "product", 0, cb));
+
+    await page.evaluate(() => window.scrollBy(0, 600));
+    await page.waitForTimeout(500);
+    screenshots.push(await captureAndEmit(page, "product", 1, cb));
+
+    // Scroll further to see reviews / additional details
+    await page.evaluate(() => window.scrollBy(0, 600));
+    await page.waitForTimeout(500);
+    screenshots.push(await captureAndEmit(page, "product", 2, cb));
+
     const html = await captureHtml(page);
+    const confidence = detectEmptyState(html) ? "low" as const : nav.confidence;
 
     const step: CrawlStep = {
       ...stepDef,
       url: page.url(),
-      screenshot,
+      screenshots,
       html,
       timestamp: Date.now(),
+      navigationConfidence: confidence,
+      navigationMethod: nav.method,
     };
     await cb.onStepComplete(step);
     return step;
@@ -156,7 +208,7 @@ async function crawlProduct(
     const error =
       err instanceof Error ? err.message : "Failed to load product page";
     cb.onError("product", error);
-    return { ...stepDef, error, timestamp: Date.now() };
+    return { ...stepDef, error, timestamp: Date.now(), navigationConfidence: "low", navigationMethod: "navigation failed" };
   }
 }
 
@@ -168,7 +220,14 @@ async function crawlAddToCart(
   cb.onStepStart("add_to_cart", stepDef.label, stepDef.description);
 
   try {
+    const screenshots: string[] = [];
+
+    // Scroll back to top to see the add-to-cart button area
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(300);
+
     await selectVariant(page);
+    screenshots.push(await captureAndEmit(page, "add_to_cart", 0, cb));
 
     const addToCartButton = await findAddToCartButton(page);
 
@@ -180,15 +239,18 @@ async function crawlAddToCart(
     }
 
     await dismissOverlays(page);
-    const screenshot = await captureScreenshot(page);
+    screenshots.push(await captureAndEmit(page, "add_to_cart", 1, cb));
+
     const html = await captureHtml(page);
 
     const step: CrawlStep = {
       ...stepDef,
       url: page.url(),
-      screenshot,
+      screenshots,
       html,
       timestamp: Date.now(),
+      navigationConfidence: "high",
+      navigationMethod: "action on current product page",
       ...(!cartVerified ? { error: "add-to-cart attempted but could not be verified" } : {}),
     };
     await cb.onStepComplete(step);
@@ -197,7 +259,7 @@ async function crawlAddToCart(
     const error =
       err instanceof Error ? err.message : "Failed to add to cart";
     cb.onError("add_to_cart", error);
-    return { ...stepDef, error, timestamp: Date.now() };
+    return { ...stepDef, error, timestamp: Date.now(), navigationConfidence: "low", navigationMethod: "navigation failed" };
   }
 }
 
@@ -212,22 +274,31 @@ async function crawlCart(
   try {
     await page.goto(`${storeUrl}/cart`, { waitUntil: "networkidle" });
     await dismissOverlays(page);
-    const screenshot = await captureScreenshot(page);
+
+    const screenshots: string[] = [];
+    screenshots.push(await captureAndEmit(page, "cart", 0, cb));
+
+    await page.evaluate(() => window.scrollBy(0, 600));
+    await page.waitForTimeout(500);
+    screenshots.push(await captureAndEmit(page, "cart", 1, cb));
+
     const html = await captureHtml(page);
 
     const step: CrawlStep = {
       ...stepDef,
       url: page.url(),
-      screenshot,
+      screenshots,
       html,
       timestamp: Date.now(),
+      navigationConfidence: "high",
+      navigationMethod: "direct URL /cart",
     };
     await cb.onStepComplete(step);
     return step;
   } catch (err) {
     const error = err instanceof Error ? err.message : "Failed to load cart";
     cb.onError("cart", error);
-    return { ...stepDef, error, timestamp: Date.now() };
+    return { ...stepDef, error, timestamp: Date.now(), navigationConfidence: "low", navigationMethod: "navigation failed" };
   }
 }
 
@@ -250,6 +321,23 @@ async function captureHtml(page: Page): Promise<string> {
     .trim();
 
   return cleaned.slice(0, 50000);
+}
+
+function detectEmptyState(html: string): boolean {
+  const lower = html.toLowerCase();
+  const emptyPatterns = [
+    "nothing to see here",
+    "no products found",
+    "page not found",
+    "404",
+    "no results",
+    "empty collection",
+    "uh-oh",
+    "doesn\u2019t exist",
+    "doesn't exist",
+    "not available",
+  ];
+  return emptyPatterns.some((p) => lower.includes(p));
 }
 
 async function dismissOverlays(page: Page): Promise<void> {
@@ -286,10 +374,16 @@ async function dismissOverlays(page: Page): Promise<void> {
   }
 }
 
+interface NavResult {
+  url: string;
+  method: string;
+  confidence: "high" | "medium" | "low";
+}
+
 async function findCollectionsLink(
   page: Page,
   storeUrl: string
-): Promise<string> {
+): Promise<NavResult> {
   const navPatterns = [
     'nav a[href*="collection"]',
     'header a[href*="collection"]',
@@ -304,7 +398,8 @@ async function findCollectionsLink(
       if (await link.isVisible({ timeout: 1000 })) {
         const href = await link.getAttribute("href");
         if (href) {
-          return href.startsWith("http") ? href : `${storeUrl}${href}`;
+          const url = href.startsWith("http") ? href : `${storeUrl}${href}`;
+          return { url, method: `clicked nav link to ${href}`, confidence: "high" };
         }
       }
     } catch {
@@ -312,19 +407,20 @@ async function findCollectionsLink(
     }
   }
 
-  return `${storeUrl}/collections/all`;
+  return { url: `${storeUrl}/collections/all`, method: "fallback to /collections/all", confidence: "medium" };
 }
 
 async function findProductLink(
   page: Page,
   storeUrl: string
-): Promise<string> {
+): Promise<NavResult> {
   try {
     const productLink = page.locator('a[href*="/products/"]').first();
     if (await productLink.isVisible({ timeout: 2000 })) {
       const href = await productLink.getAttribute("href");
       if (href) {
-        return href.startsWith("http") ? href : `${storeUrl}${href}`;
+        const url = href.startsWith("http") ? href : `${storeUrl}${href}`;
+        return { url, method: `clicked product link to ${href}`, confidence: "high" };
       }
     }
   } catch {
@@ -337,7 +433,8 @@ async function findProductLink(
       .request.get(`${storeUrl}/products.json?limit=1`);
     const data = await response.json();
     if (data.products?.[0]?.handle) {
-      return `${storeUrl}/products/${data.products[0].handle}`;
+      const handle = data.products[0].handle;
+      return { url: `${storeUrl}/products/${handle}`, method: `fallback to /products.json API (${handle})`, confidence: "medium" };
     }
   } catch {
     // Fall through
