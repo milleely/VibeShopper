@@ -157,7 +157,7 @@ Respond ONLY with valid JSON:
   "overallScore": number,
   "shopperNarrative": "string (3-4 sentences, first person, full journey)",
   "quickWins": [
-    {"id": "qw1", "category": "string", "severity": "high", "title": "string", "description": "string", "fix": "string", "page": "string"}
+    {"id": "qw1", "category": "string", "severity": "high", "title": "string", "description": "string", "fix": "string", "page": "string", "effort": "~30 min", "effortType": "Theme edit | Code change | App install"}
   ],
   "categories": [
     {

@@ -88,6 +88,8 @@ export interface AuditIssue {
   description: string;
   fix: string;
   page: CrawlStepName;
+  effort?: string;
+  effortType?: string;
 }
 
 export interface CategoryScore {

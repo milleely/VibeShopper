@@ -203,18 +203,33 @@ function IssueCard({
 
 function QuickWinCard({
   issue,
+  isFirst,
   screenshot,
   onScreenshotClick,
 }: {
   issue: AuditIssue;
+  isFirst?: boolean;
   screenshot?: ScreenshotData;
   onScreenshotClick?: (s: ScreenshotData) => void;
 }) {
   const styles = SEVERITY_STYLES[issue.severity];
 
   return (
-    <div className="flex flex-col justify-between rounded-xl border border-border-default bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
+    <div
+      className={`flex flex-col justify-between rounded-xl p-5 shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-all hover:shadow-md hover:-translate-y-px ${
+        isFirst
+          ? "border-[1.5px] border-severity-high-text bg-gradient-to-b from-white from-85% to-[#fef5f5]"
+          : "border border-border-default bg-white"
+      }`}
+    >
       <div>
+        {isFirst && (
+          <div className="mb-2">
+            <span className="inline-block rounded bg-[#fef5f5] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-severity-high-text">
+              ★ Fix this first
+            </span>
+          </div>
+        )}
         <div className="mb-3">
           <SeverityBadge severity={issue.severity} />
         </div>
@@ -225,32 +240,32 @@ function QuickWinCard({
           {issue.description}
         </p>
         <div
-          className={`mb-4 rounded-lg ${styles.bg} border-l-[3px] ${styles.border} px-3 py-2`}
+          className={`mb-4 rounded-lg ${styles.bg} border-l-[3px] ${styles.border} px-3 py-2.5`}
         >
-          <p className="text-sm leading-relaxed text-text-secondary">
+          <p className="text-[13px] leading-relaxed text-text-secondary">
             <span className="font-semibold text-text-primary">Fix: </span>
             {issue.fix}
           </p>
         </div>
       </div>
-      <div className="mt-auto pt-1">
+      <div className="mt-auto flex items-center justify-between pt-1">
         {screenshot && onScreenshotClick ? (
           <button
             type="button"
             onClick={() => onScreenshotClick(screenshot)}
-            className="flex items-center gap-2.5 cursor-zoom-in group"
+            className="inline-flex items-center gap-1 rounded-full bg-[#e8f4fd] px-2.5 py-1 text-[11px] font-medium text-[#0969da] transition-colors hover:bg-[#cce5ff] cursor-zoom-in"
           >
-            <img
-              src={`data:image/png;base64,${screenshot.screenshot}`}
-              alt={STEP_LABELS[issue.page]}
-              className="h-10 w-[30px] rounded border border-border-default object-cover object-top transition-shadow group-hover:shadow-md"
-            />
-            <span className="text-xs font-medium text-text-secondary group-hover:text-text-primary transition-colors">
-              {STEP_LABELS[issue.page]}
-            </span>
+            <span>📍</span> {STEP_LABELS[issue.page]}
           </button>
         ) : (
-          <PagePill page={issue.page} />
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#e8f4fd] px-2.5 py-1 text-[11px] font-medium text-[#0969da]">
+            <span>📍</span> {STEP_LABELS[issue.page]}
+          </span>
+        )}
+        {(issue.effort || issue.effortType) && (
+          <span className="text-[11px] font-medium text-text-disabled">
+            {issue.effort}{issue.effort && issue.effortType ? " · " : ""}{issue.effortType}
+          </span>
         )}
       </div>
     </div>
@@ -471,7 +486,7 @@ function ScreenshotStrip({
   return (
     <section>
       <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
-        Browsing Session Screenshots
+        Browsing Session Screenshots &mdash; click to enlarge
       </h2>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
         {visible.map((s) => (
@@ -479,14 +494,27 @@ function ScreenshotStrip({
             key={s.step}
             type="button"
             onClick={() => onScreenshotClick(s)}
-            className="overflow-hidden rounded-xl border border-border-default bg-white shadow-[0_1px_2px_rgba(0,0,0,0.07)] text-left cursor-zoom-in transition-shadow hover:shadow-md"
+            className="group overflow-hidden rounded-xl border border-border-default bg-white shadow-[0_1px_2px_rgba(0,0,0,0.07)] text-left cursor-zoom-in transition-all hover:shadow-md"
           >
-            <img
-              src={`data:image/png;base64,${s.screenshot}`}
-              alt={`Screenshot of ${STEP_LABELS[s.step]} page`}
-              className="aspect-[9/16] w-full object-cover object-top"
-              loading="lazy"
-            />
+            <div className="relative">
+              <img
+                src={`data:image/png;base64,${s.screenshot}`}
+                alt={`Screenshot of ${STEP_LABELS[s.step]} page`}
+                className="aspect-[9/16] w-full object-cover object-top"
+                loading="lazy"
+              />
+              {/* Hover expand icon */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth={2} className="h-4 w-4">
+                    <polyline points="6 2 2 2 2 6" />
+                    <polyline points="10 14 14 14 14 10" />
+                    <line x1="2" y1="2" x2="7" y2="7" />
+                    <line x1="14" y1="14" x2="9" y2="9" />
+                  </svg>
+                </div>
+              </div>
+            </div>
             <div className="px-3 py-2 text-center">
               <span className="text-xs font-semibold text-text-secondary">
                 {STEP_LABELS[s.step]}
@@ -625,11 +653,12 @@ export default function AuditReport({
               <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
                 Quick Wins &mdash; Highest Impact, Lowest Effort
               </h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {report.quickWins.slice(0, 3).map((issue) => (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.15fr_1fr_1fr]">
+                {report.quickWins.slice(0, 3).map((issue, i) => (
                   <QuickWinCard
                     key={issue.id}
                     issue={issue}
+                    isFirst={i === 0}
                     screenshot={screenshotMap.get(issue.page)}
                     onScreenshotClick={openLightbox}
                   />
@@ -637,6 +666,29 @@ export default function AuditReport({
               </div>
             </section>
           )}
+
+          {/* What's Working Well */}
+          {(() => {
+            const allPositives = [...new Set(commentaries.flatMap((c) => c.positives))];
+            if (allPositives.length === 0) return null;
+            return (
+              <section className="mb-8">
+                <div className="rounded-xl border border-border-default bg-white px-6 py-5 shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
+                  <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
+                    What&apos;s Working Well
+                  </h2>
+                  <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                    {allPositives.map((pos, i) => (
+                      <div key={i} className="flex items-start gap-2.5">
+                        <span className="mt-0.5 shrink-0 text-[15px] text-primary">&#10003;</span>
+                        <span className="text-[13px] leading-[1.45] text-text-primary">{pos}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+          })()}
 
           {/* Category Breakdown */}
           <section className="mb-8">
@@ -661,16 +713,21 @@ export default function AuditReport({
           <ScreenshotStrip screenshots={screenshots} onScreenshotClick={openLightbox} />
 
           {/* Footer CTA */}
-          <div className="mt-10 rounded-xl border border-border-default bg-white p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
-            <p className="mb-4 text-sm text-text-secondary">
-              Want to improve your score? Run another analysis after making changes.
-            </p>
+          <div className="mt-10 flex items-center justify-between rounded-xl border border-border-default bg-white px-8 py-7 shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
+            <div>
+              <h3 className="text-base font-bold text-text-primary">
+                Want to improve your score?
+              </h3>
+              <p className="mt-1 text-[13px] text-text-secondary">
+                Make changes based on the quick wins above, then run another analysis to measure progress.
+              </p>
+            </div>
             <button
               type="button"
               onClick={onReset}
-              className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-hover active:bg-primary-pressed"
+              className="shrink-0 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover active:bg-primary-pressed"
             >
-              New Analysis
+              Run New Analysis
             </button>
           </div>
         </>
