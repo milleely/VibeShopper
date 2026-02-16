@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { CRAWL_STEPS } from "@/lib/types";
-import type { CrawlStepName, StepCommentary, StepIssue } from "@/lib/types";
+import type { CrawlStepName, StepCommentary } from "@/lib/types";
 import type { ScreenshotData } from "@/lib/useStoreAnalysis";
 
 // ---------------------------------------------------------------------------
@@ -23,24 +23,6 @@ interface LiveViewerProps {
 // ---------------------------------------------------------------------------
 
 const STEP_NAMES: CrawlStepName[] = CRAWL_STEPS.map((s) => s.name);
-
-const SEVERITY_STYLES: Record<
-  StepIssue["severity"],
-  { badge: string; label: string }
-> = {
-  high: {
-    badge: "bg-severity-high-bg text-severity-high-text",
-    label: "High",
-  },
-  medium: {
-    badge: "bg-severity-medium-bg text-severity-medium-text",
-    label: "Medium",
-  },
-  low: {
-    badge: "bg-severity-low-bg text-severity-low-text",
-    label: "Low",
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -142,139 +124,70 @@ function StepConnector({ completed }: { completed: boolean }) {
   );
 }
 
-/** Severity pill badge. */
-function SeverityBadge({ severity }: { severity: StepIssue["severity"] }) {
-  const style = SEVERITY_STYLES[severity];
-  return (
-    <span
-      className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold leading-tight ${style.badge}`}
-    >
-      {style.label}
-    </span>
-  );
-}
-
-/** Compact commentary card — collapsed by default, expandable for detail. */
+/** Compact commentary card — step name, narrative, severity summary. */
 function CommentaryCard({ commentary }: { commentary: StepCommentary }) {
-  const [isOpen, setIsOpen] = useState(false);
   const stepDef = CRAWL_STEPS.find((s) => s.name === commentary.step);
   const label = stepDef?.label ?? commentary.step;
-  const issueCount = commentary.issues.length;
+
+  // Count issues by severity
+  const counts = { high: 0, medium: 0, low: 0 };
+  for (const issue of commentary.issues) counts[issue.severity]++;
+  const hasIssues = commentary.issues.length > 0;
+
+  // Find highest-severity issue title
+  const topIssue = hasIssues
+    ? commentary.issues.find((i) => i.severity === "high") ??
+      commentary.issues.find((i) => i.severity === "medium") ??
+      commentary.issues[0]
+    : null;
 
   return (
-    <div className="rounded-lg border border-border-default bg-white overflow-hidden">
-      {/* Clickable header — always visible */}
-      <button
-        type="button"
-        onClick={() => setIsOpen((o) => !o)}
-        className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-bg-app/50"
-      >
-        <div className="min-w-0 flex-1">
-          <h4 className="text-sm font-semibold text-text-primary">{label}</h4>
-          {commentary.narrative && (
-            <p className="mt-1 text-xs italic text-text-secondary leading-relaxed line-clamp-2">
-              {commentary.narrative}
-            </p>
-          )}
-        </div>
-        <div className="flex shrink-0 items-center gap-2 pt-0.5">
-          <span
-            className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold leading-tight ${
-              issueCount > 0
-                ? "bg-severity-high-bg text-severity-high-text"
-                : "bg-severity-low-bg text-severity-low-text"
-            }`}
-          >
-            {issueCount > 0
-              ? `${issueCount} issue${issueCount !== 1 ? "s" : ""}`
-              : "No issues"}
-          </span>
-          <svg
-            className={`h-4 w-4 text-text-secondary transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </button>
+    <div className="rounded-lg border border-border-default bg-white px-4 py-3">
+      <h4 className="text-sm font-semibold text-text-primary">{label}</h4>
 
-      {/* Expandable detail */}
-      {isOpen && (
-        <div className="border-t border-border-default px-4 pb-4 pt-3 space-y-3">
-          {/* Observations */}
-          {commentary.observations.length > 0 && (
-            <div>
-              <h5 className="mb-1.5 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
-                Observations
-              </h5>
-              <ul className="space-y-1 pl-4 text-sm text-text-primary list-disc marker:text-text-disabled">
-                {commentary.observations.map((obs, i) => (
-                  <li key={i}>{obs}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Issues */}
-          {issueCount > 0 && (
-            <div>
-              <h5 className="mb-1.5 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
-                Issues Found
-              </h5>
-              <ul className="space-y-2">
-                {commentary.issues.map((issue, i) => (
-                  <li key={i} className="space-y-0.5">
-                    <div className="flex items-start gap-2">
-                      <SeverityBadge severity={issue.severity} />
-                      <span className="text-sm text-text-primary">
-                        {issue.description}
-                      </span>
-                    </div>
-                    {issue.fix && (
-                      <p className="pl-14 text-xs text-text-secondary leading-relaxed">
-                        Fix: {issue.fix}
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Positives */}
-          {commentary.positives.length > 0 && (
-            <div>
-              <h5 className="mb-1.5 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
-                What&apos;s Working
-              </h5>
-              <ul className="space-y-1 text-sm text-text-primary">
-                {commentary.positives.map((pos, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="mt-0.5 shrink-0 text-primary">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 16 16"
-                        fill="currentColor"
-                        className="h-4 w-4"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </span>
-                    <span>{pos}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+      {commentary.narrative && (
+        <p className="mt-1 text-xs italic text-text-secondary leading-relaxed">
+          {commentary.narrative}
+        </p>
       )}
+
+      <div className="mt-2 text-xs text-text-secondary">
+        {hasIssues ? (
+          <span className="flex items-center gap-1 flex-wrap">
+            {counts.high > 0 && (
+              <span className="text-severity-high-text font-medium">
+                🔴 {counts.high} high
+              </span>
+            )}
+            {counts.high > 0 && (counts.medium > 0 || counts.low > 0) && (
+              <span className="text-text-disabled">·</span>
+            )}
+            {counts.medium > 0 && (
+              <span className="text-severity-medium-text font-medium">
+                🟡 {counts.medium} medium
+              </span>
+            )}
+            {counts.medium > 0 && counts.low > 0 && (
+              <span className="text-text-disabled">·</span>
+            )}
+            {counts.low > 0 && (
+              <span className="text-severity-low-text font-medium">
+                🟢 {counts.low} low
+              </span>
+            )}
+            {topIssue && (
+              <>
+                <span className="text-text-disabled mx-0.5">—</span>
+                <span className="text-text-secondary truncate">
+                  {topIssue.description}
+                </span>
+              </>
+            )}
+          </span>
+        ) : (
+          <span className="text-primary font-medium">No issues found</span>
+        )}
+      </div>
     </div>
   );
 }
@@ -429,7 +342,7 @@ export default function LiveViewer({
       )}
 
       {/* ---- Split View ---- */}
-      {status !== "analyzing" && <div className="flex gap-4 min-h-[500px]">
+      {status !== "analyzing" && <div className="flex gap-4 items-start">
         {/* Left: Browser Frame (3/5) */}
         <div className="w-3/5 flex flex-col bg-white rounded-xl border border-border-default shadow-[0_1px_2px_rgba(0,0,0,0.07)] overflow-hidden">
           {/* Browser Chrome */}
@@ -450,7 +363,7 @@ export default function LiveViewer({
           </div>
 
           {/* Viewport — crossfade between screenshots */}
-          <div className="flex-1 overflow-auto bg-[#f6f6f7] relative">
+          <div className="max-h-[500px] overflow-auto bg-[#f6f6f7] relative">
             {!latestScreenshot && <BrowserSkeleton />}
 
             {/* Bottom layer: previously visible screenshot */}
@@ -493,7 +406,7 @@ export default function LiveViewer({
         </div>
 
         {/* Right: Commentary Panel (2/5) */}
-        <div className="w-2/5 flex flex-col bg-white rounded-xl border border-border-default shadow-[0_1px_2px_rgba(0,0,0,0.07)] overflow-hidden">
+        <div className="w-2/5 max-h-[600px] flex flex-col bg-white rounded-xl border border-border-default shadow-[0_1px_2px_rgba(0,0,0,0.07)] overflow-hidden">
           {/* Panel header */}
           <div className="shrink-0 border-b border-border-default px-4 py-3">
             <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">

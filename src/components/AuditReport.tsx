@@ -366,7 +366,7 @@ function BrowsingSessionView({
             </div>
 
             {/* Split: screenshot left, commentary right */}
-            <div className="flex flex-col md:flex-row">
+            <div className="flex flex-col md:flex-row md:items-start">
               {/* Screenshot */}
               <div className="md:w-3/5 border-b md:border-b-0 md:border-r border-border-default">
                 <button
@@ -383,77 +383,61 @@ function BrowsingSessionView({
                 </button>
               </div>
 
-              {/* Commentary */}
-              <div className="md:w-2/5 p-5 space-y-4">
+              {/* Commentary — compact summary */}
+              <div className="md:w-2/5 p-5">
                 {commentary ? (
                   <>
-                    {/* Narrative */}
                     {commentary.narrative && (
                       <p className="text-sm italic text-text-secondary leading-relaxed">
                         {commentary.narrative}
                       </p>
                     )}
 
-                    {/* Observations */}
-                    {commentary.observations.length > 0 && (
-                      <div>
-                        <h4 className="mb-1.5 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
-                          Observations
-                        </h4>
-                        <ul className="space-y-1 pl-4 text-sm text-text-primary list-disc marker:text-text-disabled">
-                          {commentary.observations.map((obs, i) => (
-                            <li key={i}>{obs}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Issues */}
-                    {commentary.issues.length > 0 && (
-                      <div>
-                        <h4 className="mb-1.5 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
-                          Issues Found
-                        </h4>
-                        <ul className="space-y-2">
-                          {commentary.issues.map((issue, i) => (
-                            <li key={i} className="space-y-0.5">
-                              <div className="flex items-start gap-2">
-                                <SeverityBadge severity={issue.severity} />
-                                <span className="text-sm text-text-primary">
-                                  {issue.description}
-                                </span>
-                              </div>
-                              {issue.fix && (
-                                <p className="pl-14 text-xs text-text-secondary">
-                                  Fix: {issue.fix}
-                                </p>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Positives */}
-                    {commentary.positives.length > 0 && (
-                      <div>
-                        <h4 className="mb-1.5 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
-                          What&apos;s Working
-                        </h4>
-                        <ul className="space-y-1 text-sm text-text-primary">
-                          {commentary.positives.map((pos, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="mt-0.5 shrink-0 text-primary">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4">
-                                  <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
-                                </svg>
+                    <div className="mt-2 text-xs text-text-secondary">
+                      {commentary.issues.length > 0 ? (() => {
+                        const counts = { high: 0, medium: 0, low: 0 };
+                        for (const issue of commentary.issues) counts[issue.severity]++;
+                        const topIssue =
+                          commentary.issues.find((i) => i.severity === "high") ??
+                          commentary.issues.find((i) => i.severity === "medium") ??
+                          commentary.issues[0];
+                        return (
+                          <span className="flex items-center gap-1 flex-wrap">
+                            {counts.high > 0 && (
+                              <span className="text-severity-high-text font-medium">
+                                🔴 {counts.high} high
                               </span>
-                              <span>{pos}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                            )}
+                            {counts.high > 0 && (counts.medium > 0 || counts.low > 0) && (
+                              <span className="text-text-disabled">·</span>
+                            )}
+                            {counts.medium > 0 && (
+                              <span className="text-severity-medium-text font-medium">
+                                🟡 {counts.medium} medium
+                              </span>
+                            )}
+                            {counts.medium > 0 && counts.low > 0 && (
+                              <span className="text-text-disabled">·</span>
+                            )}
+                            {counts.low > 0 && (
+                              <span className="text-severity-low-text font-medium">
+                                🟢 {counts.low} low
+                              </span>
+                            )}
+                            {topIssue && (
+                              <>
+                                <span className="text-text-disabled mx-0.5">—</span>
+                                <span className="text-text-secondary">
+                                  {topIssue.description}
+                                </span>
+                              </>
+                            )}
+                          </span>
+                        );
+                      })() : (
+                        <span className="text-primary font-medium">No issues found</span>
+                      )}
+                    </div>
                   </>
                 ) : (
                   <p className="text-sm text-text-disabled">No commentary available for this step.</p>
@@ -500,7 +484,7 @@ function ScreenshotStrip({
               <img
                 src={`data:image/png;base64,${s.screenshot}`}
                 alt={`Screenshot of ${STEP_LABELS[s.step]} page`}
-                className="aspect-[9/16] w-full object-cover object-top"
+                className="aspect-square w-full object-cover object-top"
                 loading="lazy"
               />
               {/* Hover expand icon */}

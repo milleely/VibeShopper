@@ -42,11 +42,14 @@
 - [x] Add screenshot thumbnails to `IssueCard` and `QuickWinCard` (clickable, opens lightbox)
 - [x] Pass `screenshotMap` through `CategorySection` to issue cards
 - [x] Add footer CTA card ("Want to improve your score? Run another analysis...")
+- [x] Compact Browsing Session commentary — narrative + severity summary line (matching live view)
+- [x] Decouple screenshot/commentary heights in Browsing Session (`items-start`)
 
 ### Live Viewer UX
-- [x] Simplify commentary panel — collapsed-by-default cards (step name + narrative + issue count badge)
-- [x] Click-to-expand for full observations/issues/positives
-- [x] Eliminate scroll mismatch between screenshot viewport and commentary panel
+- [x] Simplify commentary panel — compact cards (step name + narrative + severity breakdown + top issue)
+- [x] Remove expandable detail from live view (observations, issues list, positives → audit report only)
+- [x] Remove unused `SeverityBadge` and `SEVERITY_STYLES` from LiveViewer
+- [x] Decouple screenshot/commentary panel heights (`items-start`, viewport `max-h-[500px]`, commentary `max-h-[600px]`)
 - [x] Multi-screenshot capture — 2-3 screenshots per step (initial + after scroll + after interaction)
 - [x] Crossfade transitions between screenshots (300ms opacity fade, `onLoad`-gated)
 - [x] "Scrolling..." indicator in browser footer during transitions
