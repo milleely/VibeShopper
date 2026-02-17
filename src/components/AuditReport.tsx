@@ -113,7 +113,7 @@ function ScreenshotLightbox({
       onClick={onClose}
     >
       <div
-        className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-white shadow-2xl"
+        className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-bg-surface shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -219,13 +219,13 @@ function QuickWinCard({
       className={`flex flex-col justify-between rounded-xl p-5 shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-all hover:shadow-md hover:-translate-y-px ${
         isFirst
           ? "border-[1.5px] border-severity-high-text bg-gradient-to-b from-white from-85% to-[#fef5f5]"
-          : "border border-border-default bg-white"
+          : "border border-border-default bg-bg-surface"
       }`}
     >
       <div>
         {isFirst && (
           <div className="mb-2">
-            <span className="inline-block rounded bg-[#fef5f5] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-severity-high-text">
+            <span className="inline-block rounded bg-severity-high-bg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-severity-high-text">
               ★ Fix this first
             </span>
           </div>
@@ -253,12 +253,12 @@ function QuickWinCard({
           <button
             type="button"
             onClick={() => onScreenshotClick(screenshot)}
-            className="inline-flex items-center gap-1 rounded-full bg-[#e8f4fd] px-2.5 py-1 text-[11px] font-medium text-[#0969da] transition-colors hover:bg-[#cce5ff] cursor-zoom-in"
+            className="inline-flex items-center gap-1 rounded-full bg-info-bg px-2.5 py-1 text-[11px] font-medium text-info-text transition-colors hover:bg-info-bg/70 cursor-zoom-in"
           >
             <span>📍</span> {STEP_LABELS[issue.page]}
           </button>
         ) : (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#e8f4fd] px-2.5 py-1 text-[11px] font-medium text-[#0969da]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-info-bg px-2.5 py-1 text-[11px] font-medium text-info-text">
             <span>📍</span> {STEP_LABELS[issue.page]}
           </span>
         )}
@@ -286,7 +286,7 @@ function CategorySection({
   onScreenshotClick: (s: ScreenshotData) => void;
 }) {
   return (
-    <div className="rounded-xl border border-border-default bg-white shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
+    <div className="rounded-xl border border-border-default bg-bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
       <button
         type="button"
         onClick={onToggle}
@@ -355,10 +355,10 @@ function BrowsingSessionView({
         return (
           <div
             key={s.step}
-            className="rounded-xl border border-border-default bg-white shadow-[0_1px_2px_rgba(0,0,0,0.07)] overflow-hidden"
+            className="rounded-xl border border-border-default bg-bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.07)] overflow-hidden"
           >
             {/* Step header */}
-            <div className="border-b border-border-default bg-[#fafafa] px-5 py-3">
+            <div className="border-b border-border-default bg-bg-app px-5 py-3">
               <h3 className="text-sm font-bold text-text-primary">
                 {STEP_LABELS[s.step]}
               </h3>
@@ -478,7 +478,7 @@ function ScreenshotStrip({
             key={s.step}
             type="button"
             onClick={() => onScreenshotClick(s)}
-            className="group overflow-hidden rounded-xl border border-border-default bg-white shadow-[0_1px_2px_rgba(0,0,0,0.07)] text-left cursor-zoom-in transition-all hover:shadow-md"
+            className="group overflow-hidden rounded-xl border border-border-default bg-bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.07)] text-left cursor-zoom-in transition-all hover:shadow-md"
           >
             <div className="relative">
               <img
@@ -567,7 +567,7 @@ export default function AuditReport({
           <button
             type="button"
             onClick={onReset}
-            className="rounded-lg border border-border-default bg-white px-5 py-2.5 text-sm font-medium text-text-primary transition-colors hover:bg-[#f6f6f6]"
+            className="rounded-lg border border-border-default bg-bg-surface px-5 py-2.5 text-sm font-medium text-text-primary transition-colors hover:bg-bg-app"
           >
             New Analysis
           </button>
@@ -581,7 +581,7 @@ export default function AuditReport({
           onClick={() => setActiveTab("report")}
           className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === "report"
-              ? "bg-white text-text-primary shadow-[0_1px_2px_rgba(0,0,0,0.07)]"
+              ? "bg-bg-surface text-text-primary shadow-[0_1px_2px_rgba(0,0,0,0.07)]"
               : "text-text-secondary hover:text-text-primary"
           }`}
         >
@@ -592,7 +592,7 @@ export default function AuditReport({
           onClick={() => setActiveTab("session")}
           className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === "session"
-              ? "bg-white text-text-primary shadow-[0_1px_2px_rgba(0,0,0,0.07)]"
+              ? "bg-bg-surface text-text-primary shadow-[0_1px_2px_rgba(0,0,0,0.07)]"
               : "text-text-secondary hover:text-text-primary"
           }`}
         >
@@ -613,7 +613,7 @@ export default function AuditReport({
       {activeTab === "report" && (
         <>
           {/* Score + Narrative */}
-          <div className="mb-8 rounded-xl border border-border-default bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.07)] sm:p-8">
+          <div className="mb-8 rounded-xl border border-border-default bg-bg-surface p-6 shadow-[0_1px_2px_rgba(0,0,0,0.07)] sm:p-8">
             <div className="flex flex-col items-center gap-8 md:flex-row md:items-start">
               <div className="shrink-0">
                 <ScoreGauge score={report.overallScore} size="lg" />
@@ -657,7 +657,7 @@ export default function AuditReport({
             if (allPositives.length === 0) return null;
             return (
               <section className="mb-8">
-                <div className="rounded-xl border border-border-default bg-white px-6 py-5 shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
+                <div className="rounded-xl border border-border-default bg-bg-surface px-6 py-5 shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
                   <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
                     What&apos;s Working Well
                   </h2>
@@ -697,7 +697,7 @@ export default function AuditReport({
           <ScreenshotStrip screenshots={screenshots} onScreenshotClick={openLightbox} />
 
           {/* Footer CTA */}
-          <div className="mt-10 flex items-center justify-between rounded-xl border border-border-default bg-white px-8 py-7 shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
+          <div className="mt-10 flex items-center justify-between rounded-xl border border-border-default bg-bg-surface px-8 py-7 shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
             <div>
               <h3 className="text-base font-bold text-text-primary">
                 Want to improve your score?

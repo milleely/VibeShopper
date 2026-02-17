@@ -142,7 +142,7 @@ function CommentaryCard({ commentary }: { commentary: StepCommentary }) {
     : null;
 
   return (
-    <div className="rounded-lg border border-border-default bg-white px-4 py-3">
+    <div className="rounded-lg border border-border-default bg-bg-surface px-4 py-3">
       <h4 className="text-sm font-semibold text-text-primary">{label}</h4>
 
       {commentary.narrative && (
@@ -195,7 +195,7 @@ function CommentaryCard({ commentary }: { commentary: StepCommentary }) {
 /** Pulsing skeleton placeholder for the browser frame. */
 function BrowserSkeleton() {
   return (
-    <div className="flex h-full min-h-[400px] items-center justify-center bg-[#f6f6f7]">
+    <div className="flex h-full min-h-[400px] items-center justify-center bg-bg-app">
       <div className="flex flex-col items-center gap-3">
         <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         <span className="text-sm text-text-secondary animate-pulse">
@@ -209,7 +209,7 @@ function BrowserSkeleton() {
 /** Loading dots animation for commentary pending state. */
 function CommentaryPending() {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-border-default bg-white p-4">
+    <div className="flex items-center gap-2 rounded-lg border border-border-default bg-bg-surface p-4">
       <div className="flex gap-1">
         <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
         <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
@@ -291,7 +291,7 @@ export default function LiveViewer({
   return (
     <section className="space-y-6">
       {/* ---- Step Progress Bar ---- */}
-      <div className="bg-white rounded-xl border border-border-default shadow-[0_1px_2px_rgba(0,0,0,0.07)] px-6 py-4">
+      <div className="bg-bg-surface rounded-xl border border-border-default shadow-[0_1px_2px_rgba(0,0,0,0.07)] px-6 py-4">
         <div className="flex items-start">
           {CRAWL_STEPS.map((step, i) => {
             let state: "completed" | "active" | "pending";
@@ -326,7 +326,7 @@ export default function LiveViewer({
 
       {/* ---- Analyzing State ---- */}
       {status === "analyzing" && (
-        <div className="flex items-center justify-center rounded-xl border border-border-default bg-white shadow-[0_1px_2px_rgba(0,0,0,0.07)] py-20">
+        <div className="flex items-center justify-center rounded-xl border border-border-default bg-bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.07)] py-20">
           <div className="flex flex-col items-center gap-4">
             <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-primary border-t-transparent" />
             <div className="text-center">
@@ -344,9 +344,9 @@ export default function LiveViewer({
       {/* ---- Split View ---- */}
       {status !== "analyzing" && <div className="flex gap-4 items-start">
         {/* Left: Browser Frame (3/5) */}
-        <div className="w-3/5 flex flex-col bg-white rounded-xl border border-border-default shadow-[0_1px_2px_rgba(0,0,0,0.07)] overflow-hidden">
+        <div className="w-3/5 flex flex-col bg-bg-surface rounded-xl border border-border-default shadow-[0_1px_2px_rgba(0,0,0,0.07)] overflow-hidden">
           {/* Browser Chrome */}
-          <div className="flex items-center gap-3 border-b border-border-default bg-[#fafafa] px-4 py-2.5">
+          <div className="flex items-center gap-3 border-b border-border-default bg-bg-app px-4 py-2.5">
             {/* Traffic-light dots */}
             <div className="flex gap-1.5">
               <span className="h-[10px] w-[10px] rounded-full bg-[#ec6a5e]" />
@@ -363,7 +363,7 @@ export default function LiveViewer({
           </div>
 
           {/* Viewport — crossfade between screenshots */}
-          <div className="max-h-[500px] overflow-auto bg-[#f6f6f7] relative">
+          <div className="max-h-[500px] overflow-auto bg-bg-app relative">
             {!latestScreenshot && <BrowserSkeleton />}
 
             {/* Bottom layer: previously visible screenshot */}
@@ -388,7 +388,7 @@ export default function LiveViewer({
 
           {/* Step description footer */}
           {currentStepLabel && (
-            <div className="border-t border-border-default bg-[#fafafa] px-4 py-2 flex items-center justify-between">
+            <div className="border-t border-border-default bg-bg-app px-4 py-2 flex items-center justify-between">
               <p className="text-xs text-text-secondary">
                 <span className="font-medium text-text-primary">
                   {currentStepLabel}
@@ -406,7 +406,7 @@ export default function LiveViewer({
         </div>
 
         {/* Right: Commentary Panel (2/5) */}
-        <div className="w-2/5 max-h-[600px] flex flex-col bg-white rounded-xl border border-border-default shadow-[0_1px_2px_rgba(0,0,0,0.07)] overflow-hidden">
+        <div className="w-2/5 max-h-[600px] flex flex-col bg-bg-surface rounded-xl border border-border-default shadow-[0_1px_2px_rgba(0,0,0,0.07)] overflow-hidden">
           {/* Panel header */}
           <div className="shrink-0 border-b border-border-default px-4 py-3">
             <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">

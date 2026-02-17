@@ -6,6 +6,19 @@ export interface ValidationResult {
   error?: string;
 }
 
+const BROWSER_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+/** Shopify fingerprints commonly found in the homepage HTML. */
+const SHOPIFY_SIGNALS = [
+  "cdn.shopify.com",
+  "Shopify.theme",
+  "shopify-section",
+  "myshopify.com",
+  "shopify-features",
+  "Shopify.locale",
+];
+
 export async function validateShopifyUrl(
   input: string
 ): Promise<ValidationResult> {
@@ -26,55 +39,66 @@ export async function validateShopifyUrl(
     };
   }
 
+  // ------------------------------------------------------------------
+  // Strategy 1: Try /products.json (fast, definitive when it works)
+  // ------------------------------------------------------------------
+  let productsJsonWorked = false;
   try {
     const response = await fetch(`${url}/products.json?limit=1`, {
       method: "GET",
-      headers: { "User-Agent": "StorefrontSimulator/1.0" },
+      headers: { "User-Agent": BROWSER_UA },
       signal: AbortSignal.timeout(8000),
     });
 
-    if (!response.ok) {
-      return {
-        isValid: true,
-        isShopify: false,
-        normalizedUrl: url,
-        error: "This doesn't appear to be a Shopify store",
-      };
+    if (response.ok) {
+      const data = await response.json();
+      if (data.products && Array.isArray(data.products)) {
+        productsJsonWorked = true;
+      }
     }
+  } catch {
+    // Swallow — we'll try the HTML fallback
+  }
 
-    const data = await response.json();
+  // ------------------------------------------------------------------
+  // Strategy 2: Fetch homepage HTML and look for Shopify fingerprints
+  // ------------------------------------------------------------------
+  let storeName: string | undefined;
+  let htmlIsShopify = false;
 
-    if (!data.products || !Array.isArray(data.products)) {
-      return {
-        isValid: true,
-        isShopify: false,
-        normalizedUrl: url,
-        error: "This doesn't appear to be a Shopify store",
-      };
-    }
+  try {
+    const homeResponse = await fetch(url, {
+      headers: { "User-Agent": BROWSER_UA },
+      signal: AbortSignal.timeout(8000),
+      redirect: "follow",
+    });
 
-    let storeName: string | undefined;
-    try {
-      const homeResponse = await fetch(url, {
-        headers: { "User-Agent": "StorefrontSimulator/1.0" },
-        signal: AbortSignal.timeout(5000),
-      });
+    if (homeResponse.ok) {
       const html = await homeResponse.text();
+
+      // Check for Shopify fingerprints
+      htmlIsShopify = SHOPIFY_SIGNALS.some((signal) => html.includes(signal));
+
+      // Extract store name from <title>
       const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
       if (titleMatch) {
         storeName = titleMatch[1].trim();
       }
-    } catch {
-      // Non-critical
     }
-
-    return { isValid: true, isShopify: true, normalizedUrl: url, storeName };
-  } catch (err) {
-    return {
-      isValid: true,
-      isShopify: false,
-      normalizedUrl: url,
-      error: err instanceof Error ? err.message : "Could not reach the store",
-    };
+  } catch {
+    // If we can't reach the homepage at all, fall through to error
   }
+
+  const isShopify = productsJsonWorked || htmlIsShopify;
+
+  if (isShopify) {
+    return { isValid: true, isShopify: true, normalizedUrl: url, storeName };
+  }
+
+  return {
+    isValid: true,
+    isShopify: false,
+    normalizedUrl: url,
+    error: "This doesn't appear to be a Shopify store",
+  };
 }

@@ -258,8 +258,18 @@ async function crawlAddToCart(
   } catch (err) {
     const error =
       err instanceof Error ? err.message : "Failed to add to cart";
-    cb.onError("add_to_cart", error);
-    return { ...stepDef, error, timestamp: Date.now(), navigationConfidence: "low", navigationMethod: "navigation failed" };
+    const errorStep: CrawlStep = {
+      ...stepDef,
+      url: page.url(),
+      screenshots: [],
+      html: "",
+      error,
+      timestamp: Date.now(),
+      navigationConfidence: "low",
+      navigationMethod: "navigation failed",
+    };
+    await cb.onStepComplete(errorStep);
+    return errorStep;
   }
 }
 
@@ -354,9 +364,21 @@ async function dismissOverlays(page: Page): Promise<void> {
     '[class*="geo"] button',
     'button:has-text("US")',
     'button:has-text("United States")',
+    // Location / country / region selectors
+    '[class*="location"] button',
+    '[class*="country"] button',
+    '[class*="region"] button',
+    '[class*="locale"] button',
+    'button:has-text("Confirm")',
+    'button:has-text("CONFIRM")',
+    'button:has-text("Stay")',
+    'button:has-text("Continue")',
     // Popup / modal close buttons
     '[class*="popup"] button[class*="close"]',
     '[class*="modal"] button[class*="close"]',
+    '[class*="modal"] [class*="close"]',
+    '[role="dialog"] button[class*="close"]',
+    '[role="dialog"] [aria-label="Close"]',
     '[aria-label="Close"]',
     'button[class*="dismiss"]',
   ];
@@ -446,7 +468,10 @@ async function findProductLink(
 async function selectVariant(page: Page): Promise<void> {
   // Click-based selectors (buttons, radio labels)
   const clickSelectors = [
-    '[class*="size"] button',
+    '[class*="size"] button:not(:has-text("guide")):not(:has-text("Guide")):not(:has-text("chart")):not(:has-text("Chart"))',
+    '[class*="variant"] button',
+    '[class*="option-value"] button',
+    '[data-variant] button',
     '.product-form__input input[type="radio"]',
     '[name*="option"] + label',
     '[data-option-index] button',
