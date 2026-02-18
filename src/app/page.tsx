@@ -50,7 +50,7 @@ export default function Home() {
   // ---- Complete: full audit report ----
   if (status === "complete" && report) {
     return (
-      <div className="min-h-screen py-8">
+      <div className="bg-aurora min-h-screen py-8">
         <AuditReport
           report={report}
           screenshots={screenshots}

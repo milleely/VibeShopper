@@ -469,7 +469,7 @@ function ScreenshotStrip({
 
   return (
     <section>
-      <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
+      <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-white/50">
         Browsing Session Screenshots &mdash; click to enlarge
       </h2>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
@@ -551,23 +551,23 @@ export default function AuditReport({
       {/* ------- 1. Header Row ------- */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h1 className="truncate text-2xl font-bold text-text-primary sm:text-3xl">
+          <h1 className="truncate text-2xl font-bold text-white sm:text-3xl">
             {report.storeName}
           </h1>
-          <p className="mt-1 truncate text-sm text-text-secondary">
+          <p className="mt-1 truncate text-sm text-white/60">
             {report.storeUrl}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-4">
           {totalTime !== null && (
-            <span className="text-sm text-text-secondary">
+            <span className="text-sm text-white/60">
               Completed in {(totalTime / 1000).toFixed(1)}s
             </span>
           )}
           <button
             type="button"
             onClick={onReset}
-            className="rounded-lg border border-border-default bg-bg-surface px-5 py-2.5 text-sm font-medium text-text-primary transition-colors hover:bg-bg-app"
+            className="rounded-lg border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20"
           >
             New Analysis
           </button>
@@ -575,14 +575,14 @@ export default function AuditReport({
       </div>
 
       {/* ------- Tab Toggle ------- */}
-      <div className="mb-8 flex gap-1 rounded-lg border border-border-default bg-bg-app p-1 w-fit">
+      <div className="mb-8 flex gap-1 rounded-lg border border-white/15 bg-white/10 p-1 w-fit">
         <button
           type="button"
           onClick={() => setActiveTab("report")}
           className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === "report"
-              ? "bg-bg-surface text-text-primary shadow-[0_1px_2px_rgba(0,0,0,0.07)]"
-              : "text-text-secondary hover:text-text-primary"
+              ? "bg-white/20 text-white shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+              : "text-white/50 hover:text-white"
           }`}
         >
           Audit Report
@@ -592,8 +592,8 @@ export default function AuditReport({
           onClick={() => setActiveTab("session")}
           className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === "session"
-              ? "bg-bg-surface text-text-primary shadow-[0_1px_2px_rgba(0,0,0,0.07)]"
-              : "text-text-secondary hover:text-text-primary"
+              ? "bg-white/20 text-white shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+              : "text-white/50 hover:text-white"
           }`}
         >
           Browsing Session
@@ -634,7 +634,7 @@ export default function AuditReport({
           {/* Quick Wins */}
           {report.quickWins.length > 0 && (
             <section className="mb-8">
-              <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
+              <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-white/50">
                 Quick Wins &mdash; Highest Impact, Lowest Effort
               </h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.15fr_1fr_1fr]">
@@ -676,7 +676,7 @@ export default function AuditReport({
 
           {/* Category Breakdown */}
           <section className="mb-8">
-            <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
+            <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-white/50">
               Detailed Category Breakdown
             </h2>
             <div className="flex flex-col gap-4">
