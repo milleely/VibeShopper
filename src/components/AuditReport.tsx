@@ -248,22 +248,23 @@ function QuickWinCard({
           </p>
         </div>
       </div>
-      <div className="mt-auto flex items-center justify-between pt-1">
-        {screenshot && onScreenshotClick ? (
-          <button
-            type="button"
-            onClick={() => onScreenshotClick(screenshot)}
-            className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/60 transition-colors hover:bg-white/15 cursor-zoom-in"
-          >
-            <span>📍</span> {STEP_LABELS[issue.page]}
-          </button>
-        ) : (
-          <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/60">
-            <span>📍</span> {STEP_LABELS[issue.page]}
+      <div className="mt-auto flex items-center justify-between pt-2 border-t border-white/10">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs font-semibold text-white/80">
+            {STEP_LABELS[issue.page] ?? issue.page}
           </span>
-        )}
+          {screenshot && (
+            <button
+              type="button"
+              onClick={() => onScreenshotClick?.(screenshot)}
+              className="text-[11px] text-white/40 hover:text-white/60 transition-colors truncate max-w-[200px] text-left cursor-zoom-in"
+            >
+              {screenshot.url}
+            </button>
+          )}
+        </div>
         {(issue.effort || issue.effortType) && (
-          <span className="text-[11px] font-medium text-white/40">
+          <span className="text-[11px] font-medium text-white/40 shrink-0">
             {issue.effort}{issue.effort && issue.effortType ? " · " : ""}{issue.effortType}
           </span>
         )}
