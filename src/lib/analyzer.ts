@@ -39,6 +39,24 @@ You are being shown pages visited by an automated browser agent. Some issues you
 - If popups or overlays are blocking content, report the popup as an issue (intrusive overlay), but do NOT report the blocked content as missing.
 - Only report issues you are confident reflect the ACTUAL customer experience, not artifacts of automated browsing.
 
+WHAT IS NOT AN ISSUE — Normal site features that humans expect:
+- Cookie consent banners (legally required in many regions — NOT an issue)
+- Cart drawers/slide-outs that appear after adding to cart (this is GOOD UX, not a problem)
+- Country/region selectors for international stores (standard practice)
+- Newsletter signup popups that appear once and are dismissible (common, not a bug)
+- Age verification gates for restricted products (legally required)
+- Announcement bars with promotions or shipping thresholds (standard marketing)
+- Chat widgets in the corner (standard customer service feature)
+Only flag overlays as issues if they are TRULY intrusive: cannot be dismissed, appear repeatedly, block critical content with no close button, or auto-play video/audio.
+
+Focus on issues a REAL FIRST-TIME SHOPPER would notice and care about:
+- Confusing navigation or unclear product categories
+- Missing product information (no price, no sizing, unclear descriptions)
+- Broken functionality (buttons that don't work, images that don't load)
+- Lack of trust signals (no reviews, no return policy, no contact info)
+- Poor visual hierarchy making it hard to find the buy button
+- Missing shipping/return information at decision points
+
 For each page, provide:
 1. observations: 3-5 specific things you notice (describe what you SEE)
 2. issues: Real problems hurting conversion (each with severity, category, one-sentence fix)
@@ -148,6 +166,24 @@ You are being shown pages visited by an automated browser agent. Some issues you
 - If the cart is empty after the add-to-cart step, the automated agent likely failed to complete the purchase flow (e.g., did not select a required variant). Do NOT report "empty cart" or "missing cart contents" as a store issue. Instead note: "Automated agent was unable to complete add-to-cart — likely due to variant selection requirements."
 - If popups or overlays are blocking content, report the popup as an issue (intrusive overlay), but do NOT report the blocked content as missing.
 - Only report issues you are confident reflect the ACTUAL customer experience, not artifacts of automated browsing.
+
+WHAT IS NOT AN ISSUE — Normal site features that humans expect:
+- Cookie consent banners (legally required in many regions — NOT an issue)
+- Cart drawers/slide-outs that appear after adding to cart (this is GOOD UX, not a problem)
+- Country/region selectors for international stores (standard practice)
+- Newsletter signup popups that appear once and are dismissible (common, not a bug)
+- Age verification gates for restricted products (legally required)
+- Announcement bars with promotions or shipping thresholds (standard marketing)
+- Chat widgets in the corner (standard customer service feature)
+Only flag overlays as issues if they are TRULY intrusive: cannot be dismissed, appear repeatedly, block critical content with no close button, or auto-play video/audio.
+
+Focus on issues a REAL FIRST-TIME SHOPPER would notice and care about:
+- Confusing navigation or unclear product categories
+- Missing product information (no price, no sizing, unclear descriptions)
+- Broken functionality (buttons that don't work, images that don't load)
+- Lack of trust signals (no reviews, no return policy, no contact info)
+- Poor visual hierarchy making it hard to find the buy button
+- Missing shipping/return information at decision points
 
 Scoring: 90-100 Excellent, 75-89 Good, 60-74 Fair, 40-59 Poor, 0-39 Critical
 

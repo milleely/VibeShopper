@@ -45,20 +45,37 @@ export async function crawlStore(
     const page = await context.newPage();
     page.setDefaultTimeout(15000);
 
-    // Step 1: Homepage
+    // Step 1: Homepage — if this fails, abort (no page to crawl)
     completedSteps.push(await crawlHomepage(page, storeUrl, callbacks));
 
-    // Step 2: Collections
-    completedSteps.push(await crawlCollections(page, storeUrl, callbacks));
+    // Steps 2–5: Each wrapped so a failure doesn't abort the rest
+    const resilientSteps: Array<{
+      fn: () => Promise<CrawlStep>;
+      index: number;
+      name: CrawlStepName;
+    }> = [
+      { fn: () => crawlCollections(page, storeUrl, callbacks), index: 1, name: "collections" },
+      { fn: () => crawlProduct(page, storeUrl, callbacks), index: 2, name: "product" },
+      { fn: () => crawlAddToCart(page, callbacks), index: 3, name: "add_to_cart" },
+      { fn: () => crawlCart(page, storeUrl, callbacks), index: 4, name: "cart" },
+    ];
 
-    // Step 3: Product page
-    completedSteps.push(await crawlProduct(page, storeUrl, callbacks));
-
-    // Step 4: Add to cart
-    completedSteps.push(await crawlAddToCart(page, callbacks));
-
-    // Step 5: Cart
-    completedSteps.push(await crawlCart(page, storeUrl, callbacks));
+    for (const { fn, index, name } of resilientSteps) {
+      try {
+        completedSteps.push(await fn());
+      } catch (err) {
+        const stepDef = CRAWL_STEPS[index];
+        const error = err instanceof Error ? err.message : `Failed at ${name}`;
+        callbacks.onError(name, error);
+        completedSteps.push({
+          ...stepDef,
+          error,
+          timestamp: Date.now(),
+          navigationConfidence: "low",
+          navigationMethod: "navigation failed",
+        });
+      }
+    }
 
     await browser.close();
   } catch (err) {
@@ -381,18 +398,67 @@ async function dismissOverlays(page: Page): Promise<void> {
     '[role="dialog"] [aria-label="Close"]',
     '[aria-label="Close"]',
     'button[class*="dismiss"]',
+    // Newsletter / email capture popups
+    '[class*="newsletter"] button[class*="close"]',
+    '[class*="newsletter"] [aria-label="Close"]',
+    '[class*="email"] button[class*="close"]',
+    '[class*="signup"] button[class*="close"]',
+    '[class*="subscribe"] button[class*="close"]',
+    '[class*="klaviyo"] button[class*="close"]',
+    '[class*="privy"] button[class*="close"]',
+    // Promo / discount popups
+    '[class*="promo"] button[class*="close"]',
+    '[class*="discount"] button[class*="close"]',
+    '[class*="offer"] button[class*="close"]',
+    '[class*="spin"] button[class*="close"]',
+    // Age verification
+    'button:has-text("Yes")',
+    'button:has-text("Enter")',
+    '[class*="age"] button',
+    // Announcement bar dismiss
+    '[class*="announcement"] button[class*="close"]',
+    '[class*="announcement"] [aria-label="Close"]',
+    '[class*="banner"] button[class*="close"]',
+    // Generic overlay close patterns
+    'button[class*="close-button"]',
+    'button[class*="closeButton"]',
+    '.overlay button[class*="close"]',
+    // "No thanks" / decline promo modals
+    'button:has-text("No thanks")',
+    'button:has-text("No, thanks")',
+    'button:has-text("Maybe later")',
+    'a:has-text("No thanks")',
   ];
 
   for (const selector of selectors) {
     try {
       const btn = page.locator(selector).first();
-      if (await btn.isVisible({ timeout: 1000 })) {
+      if (await btn.isVisible({ timeout: 800 })) {
         await btn.click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(400);
       }
     } catch {
       // Try next
     }
+  }
+
+  // Second pass: remove any remaining fixed/sticky overlays via JS
+  try {
+    await page.evaluate(() => {
+      const els = document.querySelectorAll("*");
+      for (const el of els) {
+        const style = getComputedStyle(el);
+        if (
+          (style.position === "fixed" || style.position === "sticky") &&
+          parseInt(style.zIndex || "0", 10) > 999 &&
+          el.getBoundingClientRect().height > window.innerHeight * 0.3
+        ) {
+          (el as HTMLElement).style.display = "none";
+        }
+      }
+    });
+  } catch {
+    // Non-critical
   }
 }
 
@@ -462,7 +528,7 @@ async function findProductLink(
     // Fall through
   }
 
-  throw new Error("Could not find any product pages");
+  return { url: `${storeUrl}/products`, method: "fallback to /products", confidence: "low" };
 }
 
 async function selectVariant(page: Page): Promise<void> {
