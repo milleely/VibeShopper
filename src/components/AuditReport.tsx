@@ -36,19 +36,19 @@ const SEVERITY_STYLES: Record<
   { badge: string; border: string; bg: string }
 > = {
   high: {
-    badge: "bg-severity-high-bg text-severity-high-text",
-    border: "border-l-severity-high-border",
-    bg: "bg-severity-high-bg/40",
+    badge: "bg-[#ff6b6b]/15 text-[#ff6b6b]",
+    border: "border-l-[#ff6b6b]",
+    bg: "bg-[#ff6b6b]/10",
   },
   medium: {
-    badge: "bg-severity-medium-bg text-severity-medium-text",
-    border: "border-l-severity-medium-border",
-    bg: "bg-severity-medium-bg/40",
+    badge: "bg-[#ffd93d]/15 text-[#ffd93d]",
+    border: "border-l-[#ffd93d]",
+    bg: "bg-[#ffd93d]/10",
   },
   low: {
-    badge: "bg-severity-low-bg text-severity-low-text",
-    border: "border-l-severity-low-border",
-    bg: "bg-severity-low-bg/40",
+    badge: "bg-[#6bcf7f]/15 text-[#6bcf7f]",
+    border: "border-l-[#6bcf7f]",
+    bg: "bg-[#6bcf7f]/10",
   },
 };
 
@@ -64,7 +64,7 @@ function SeverityBadge({ severity }: { severity: AuditIssue["severity"] | StepIs
 
 function PagePill({ page }: { page: CrawlStepName }) {
   return (
-    <span className="inline-block rounded-full bg-bg-app px-2.5 py-0.5 text-xs font-medium text-text-secondary">
+    <span className="inline-block rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-white/60">
       {STEP_LABELS[page]}
     </span>
   );
@@ -73,7 +73,7 @@ function PagePill({ page }: { page: CrawlStepName }) {
 function ChevronIcon({ open }: { open: boolean }) {
   return (
     <svg
-      className={`h-5 w-5 text-text-secondary transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+      className={`h-5 w-5 text-white/50 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -113,21 +113,21 @@ function ScreenshotLightbox({
       onClick={onClose}
     >
       <div
-        className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-bg-surface shadow-2xl"
+        className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl card-dark shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border-default px-5 py-3">
-          <span className="text-sm font-semibold text-text-primary">
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
+          <span className="text-sm font-semibold text-white">
             {STEP_LABELS[screenshot.step]}
           </span>
-          <span className="mr-8 truncate text-xs text-text-secondary">
+          <span className="mr-8 truncate text-xs text-white/60">
             {screenshot.url}
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-bg-app hover:text-text-primary"
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -164,17 +164,17 @@ function IssueCard({
 
   return (
     <div
-      className={`rounded-lg border border-border-default border-l-[3px] ${styles.border} ${styles.bg} p-4`}
+      className={`rounded-lg border border-white/10 border-l-[3px] ${styles.border} ${styles.bg} p-4`}
     >
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <SeverityBadge severity={issue.severity} />
-        <h4 className="text-sm font-bold text-text-primary">{issue.title}</h4>
+        <h4 className="text-sm font-bold text-white">{issue.title}</h4>
       </div>
-      <p className="mb-3 text-sm leading-relaxed text-text-secondary">
+      <p className="mb-3 text-sm leading-relaxed text-white/70">
         {issue.description}
       </p>
-      <p className="mb-3 text-sm leading-relaxed text-text-secondary">
-        <span className="font-semibold text-text-primary">Recommended fix: </span>
+      <p className="mb-3 text-sm leading-relaxed text-white/70">
+        <span className="font-semibold text-white">Recommended fix: </span>
         {issue.fix}
       </p>
       <div className="flex items-center gap-2.5">
@@ -187,9 +187,9 @@ function IssueCard({
             <img
               src={`data:image/png;base64,${screenshot.screenshot}`}
               alt={STEP_LABELS[issue.page]}
-              className="h-10 w-[30px] rounded border border-border-default object-cover object-top transition-shadow group-hover:shadow-md"
+              className="h-10 w-[30px] rounded border border-white/15 object-cover object-top transition-shadow group-hover:shadow-md"
             />
-            <span className="text-xs font-medium text-text-secondary group-hover:text-text-primary transition-colors">
+            <span className="text-xs font-medium text-white/60 group-hover:text-white transition-colors">
               {STEP_LABELS[issue.page]}
             </span>
           </button>
@@ -216,16 +216,16 @@ function QuickWinCard({
 
   return (
     <div
-      className={`flex flex-col justify-between rounded-xl p-5 shadow-[0_1px_2px_rgba(0,0,0,0.07)] transition-all hover:shadow-md hover:-translate-y-px ${
+      className={`flex flex-col justify-between rounded-xl p-5 transition-all hover:shadow-md hover:-translate-y-px ${
         isFirst
-          ? "border-[1.5px] border-severity-high-text bg-gradient-to-b from-white from-85% to-[#fef5f5]"
-          : "border border-border-default bg-bg-surface"
+          ? "border-[1.5px] border-[#ff6b6b] bg-gradient-to-b from-[rgba(255,107,107,0.06)] to-[rgba(255,107,107,0.14)]"
+          : "card-dark-nested"
       }`}
     >
       <div>
         {isFirst && (
           <div className="mb-2">
-            <span className="inline-block rounded bg-severity-high-bg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-severity-high-text">
+            <span className="inline-block rounded bg-[#ff6b6b]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#ff6b6b]">
               ★ Fix this first
             </span>
           </div>
@@ -233,17 +233,17 @@ function QuickWinCard({
         <div className="mb-3">
           <SeverityBadge severity={issue.severity} />
         </div>
-        <h4 className="mb-2 text-[15px] font-bold text-text-primary">
+        <h4 className="mb-2 text-[15px] font-bold text-white">
           {issue.title}
         </h4>
-        <p className="mb-3 text-sm leading-relaxed text-text-secondary">
+        <p className="mb-3 text-sm leading-relaxed text-white/70">
           {issue.description}
         </p>
         <div
           className={`mb-4 rounded-lg ${styles.bg} border-l-[3px] ${styles.border} px-3 py-2.5`}
         >
-          <p className="text-[13px] leading-relaxed text-text-secondary">
-            <span className="font-semibold text-text-primary">Fix: </span>
+          <p className="text-[13px] leading-relaxed text-white/70">
+            <span className="font-semibold text-white">Fix: </span>
             {issue.fix}
           </p>
         </div>
@@ -253,17 +253,17 @@ function QuickWinCard({
           <button
             type="button"
             onClick={() => onScreenshotClick(screenshot)}
-            className="inline-flex items-center gap-1 rounded-full bg-info-bg px-2.5 py-1 text-[11px] font-medium text-info-text transition-colors hover:bg-info-bg/70 cursor-zoom-in"
+            className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/60 transition-colors hover:bg-white/15 cursor-zoom-in"
           >
             <span>📍</span> {STEP_LABELS[issue.page]}
           </button>
         ) : (
-          <span className="inline-flex items-center gap-1 rounded-full bg-info-bg px-2.5 py-1 text-[11px] font-medium text-info-text">
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/60">
             <span>📍</span> {STEP_LABELS[issue.page]}
           </span>
         )}
         {(issue.effort || issue.effortType) && (
-          <span className="text-[11px] font-medium text-text-disabled">
+          <span className="text-[11px] font-medium text-white/40">
             {issue.effort}{issue.effort && issue.effortType ? " · " : ""}{issue.effortType}
           </span>
         )}
@@ -286,17 +286,17 @@ function CategorySection({
   onScreenshotClick: (s: ScreenshotData) => void;
 }) {
   return (
-    <div className="rounded-xl border border-border-default bg-bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
+    <div className="rounded-xl card-dark">
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-bg-app/50"
+        className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-white/5 rounded-xl"
       >
         <div className="flex items-center gap-3">
-          <h3 className="text-[15px] font-bold text-text-primary">
+          <h3 className="text-[15px] font-bold text-white">
             {category.label}
           </h3>
-          <span className="rounded-full bg-bg-app px-2.5 py-0.5 text-xs font-semibold text-text-secondary">
+          <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-semibold text-white/60">
             {category.issues.length} issue{category.issues.length !== 1 ? "s" : ""}
           </span>
         </div>
@@ -307,7 +307,7 @@ function CategorySection({
       </button>
 
       {isOpen && category.issues.length > 0 && (
-        <div className="border-t border-border-default px-5 pb-5 pt-4">
+        <div className="border-t border-white/10 px-5 pb-5 pt-4">
           <div className="flex flex-col gap-3">
             {category.issues.map((issue) => (
               <IssueCard
@@ -322,8 +322,8 @@ function CategorySection({
       )}
 
       {isOpen && category.issues.length === 0 && (
-        <div className="border-t border-border-default px-5 py-6 text-center">
-          <p className="text-sm text-text-secondary">
+        <div className="border-t border-white/10 px-5 py-6 text-center">
+          <p className="text-sm text-white/60">
             No issues found in this category. Great work!
           </p>
         </div>
@@ -355,20 +355,20 @@ function BrowsingSessionView({
         return (
           <div
             key={s.step}
-            className="rounded-xl border border-border-default bg-bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.07)] overflow-hidden"
+            className="rounded-xl card-dark overflow-hidden"
           >
             {/* Step header */}
-            <div className="border-b border-border-default bg-bg-app px-5 py-3">
-              <h3 className="text-sm font-bold text-text-primary">
+            <div className="border-b border-white/10 bg-white/5 px-5 py-3">
+              <h3 className="text-sm font-bold text-white">
                 {STEP_LABELS[s.step]}
               </h3>
-              <p className="mt-0.5 truncate text-xs text-text-secondary">{s.url}</p>
+              <p className="mt-0.5 truncate text-xs text-white/60">{s.url}</p>
             </div>
 
             {/* Split: screenshot left, commentary right */}
             <div className="flex flex-col md:flex-row md:items-start">
               {/* Screenshot */}
-              <div className="md:w-3/5 border-b md:border-b-0 md:border-r border-border-default">
+              <div className="md:w-3/5 border-b md:border-b-0 md:border-r border-white/10">
                 <button
                   type="button"
                   onClick={() => onScreenshotClick(s)}
@@ -388,12 +388,12 @@ function BrowsingSessionView({
                 {commentary ? (
                   <>
                     {commentary.narrative && (
-                      <p className="text-sm italic text-text-secondary leading-relaxed">
+                      <p className="text-sm italic text-white/70 leading-relaxed">
                         {commentary.narrative}
                       </p>
                     )}
 
-                    <div className="mt-2 text-xs text-text-secondary">
+                    <div className="mt-2 text-xs text-white/60">
                       {commentary.issues.length > 0 ? (() => {
                         const counts = { high: 0, medium: 0, low: 0 };
                         for (const issue of commentary.issues) counts[issue.severity]++;
@@ -404,30 +404,30 @@ function BrowsingSessionView({
                         return (
                           <span className="flex items-center gap-1 flex-wrap">
                             {counts.high > 0 && (
-                              <span className="text-severity-high-text font-medium">
+                              <span className="text-[#ff6b6b] font-medium">
                                 🔴 {counts.high} high
                               </span>
                             )}
                             {counts.high > 0 && (counts.medium > 0 || counts.low > 0) && (
-                              <span className="text-text-disabled">·</span>
+                              <span className="text-white/30">·</span>
                             )}
                             {counts.medium > 0 && (
-                              <span className="text-severity-medium-text font-medium">
+                              <span className="text-[#ffd93d] font-medium">
                                 🟡 {counts.medium} medium
                               </span>
                             )}
                             {counts.medium > 0 && counts.low > 0 && (
-                              <span className="text-text-disabled">·</span>
+                              <span className="text-white/30">·</span>
                             )}
                             {counts.low > 0 && (
-                              <span className="text-severity-low-text font-medium">
+                              <span className="text-[#6bcf7f] font-medium">
                                 🟢 {counts.low} low
                               </span>
                             )}
                             {topIssue && (
                               <>
-                                <span className="text-text-disabled mx-0.5">—</span>
-                                <span className="text-text-secondary">
+                                <span className="text-white/30 mx-0.5">—</span>
+                                <span className="text-white/50">
                                   {topIssue.description}
                                 </span>
                               </>
@@ -440,7 +440,7 @@ function BrowsingSessionView({
                     </div>
                   </>
                 ) : (
-                  <p className="text-sm text-text-disabled">No commentary available for this step.</p>
+                  <p className="text-sm text-white/40">No commentary available for this step.</p>
                 )}
               </div>
             </div>
@@ -478,7 +478,7 @@ function ScreenshotStrip({
             key={s.step}
             type="button"
             onClick={() => onScreenshotClick(s)}
-            className="group overflow-hidden rounded-xl border border-border-default bg-bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.07)] text-left cursor-zoom-in transition-all hover:shadow-md"
+            className="group overflow-hidden rounded-xl card-dark-nested text-left cursor-zoom-in transition-all hover:shadow-md"
           >
             <div className="relative">
               <img
@@ -500,7 +500,7 @@ function ScreenshotStrip({
               </div>
             </div>
             <div className="px-3 py-2 text-center">
-              <span className="text-xs font-semibold text-text-secondary">
+              <span className="text-xs font-semibold text-white/60">
                 {STEP_LABELS[s.step]}
               </span>
             </div>
@@ -613,17 +613,17 @@ export default function AuditReport({
       {activeTab === "report" && (
         <>
           {/* Score + Narrative */}
-          <div className="mb-8 rounded-xl border border-border-default bg-bg-surface p-6 shadow-[0_1px_2px_rgba(0,0,0,0.07)] sm:p-8">
+          <div className="mb-8 rounded-xl card-dark p-6 sm:p-8">
             <div className="flex flex-col items-center gap-8 md:flex-row md:items-start">
               <div className="shrink-0">
                 <ScoreGauge score={report.overallScore} size="lg" />
               </div>
               <div className="min-w-0 flex-1">
-                <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
+                <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-white/50">
                   AI Shopper Narrative
                 </h2>
-                <blockquote className="rounded-lg border-l-[3px] border-l-primary bg-severity-low-bg/30 px-5 py-4">
-                  <p className="text-sm italic leading-relaxed text-text-primary">
+                <blockquote className="rounded-lg border-l-[3px] border-l-primary bg-white/5 px-5 py-4">
+                  <p className="text-sm italic leading-relaxed text-white/90">
                     {report.shopperNarrative}
                   </p>
                 </blockquote>
@@ -657,15 +657,15 @@ export default function AuditReport({
             if (allPositives.length === 0) return null;
             return (
               <section className="mb-8">
-                <div className="rounded-xl border border-border-default bg-bg-surface px-6 py-5 shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
-                  <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-text-secondary">
+                <div className="rounded-xl card-dark px-6 py-5">
+                  <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wide text-white/50">
                     What&apos;s Working Well
                   </h2>
                   <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
                     {allPositives.map((pos, i) => (
                       <div key={i} className="flex items-start gap-2.5">
                         <span className="mt-0.5 shrink-0 text-[15px] text-primary">&#10003;</span>
-                        <span className="text-[13px] leading-[1.45] text-text-primary">{pos}</span>
+                        <span className="text-[13px] leading-[1.45] text-white">{pos}</span>
                       </div>
                     ))}
                   </div>
@@ -697,12 +697,12 @@ export default function AuditReport({
           <ScreenshotStrip screenshots={screenshots} onScreenshotClick={openLightbox} />
 
           {/* Footer CTA */}
-          <div className="mt-10 flex items-center justify-between rounded-xl border border-border-default bg-bg-surface px-8 py-7 shadow-[0_1px_2px_rgba(0,0,0,0.07)]">
+          <div className="mt-10 flex items-center justify-between rounded-xl card-dark px-8 py-7">
             <div>
-              <h3 className="text-base font-bold text-text-primary">
+              <h3 className="text-base font-bold text-white">
                 Want to improve your score?
               </h3>
-              <p className="mt-1 text-[13px] text-text-secondary">
+              <p className="mt-1 text-[13px] text-white/60">
                 Make changes based on the quick wins above, then run another analysis to measure progress.
               </p>
             </div>

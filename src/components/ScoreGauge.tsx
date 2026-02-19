@@ -6,9 +6,9 @@ interface ScoreGaugeProps {
 }
 
 function getScoreColor(score: number) {
-  if (score >= 75) return { text: "text-severity-low-text", bg: "bg-severity-low-border" };
-  if (score >= 50) return { text: "text-severity-medium-text", bg: "bg-severity-medium-border" };
-  return { text: "text-severity-high-text", bg: "bg-severity-high-border" };
+  if (score >= 75) return { text: "text-[#6bcf7f]", bg: "bg-[#6bcf7f]" };
+  if (score >= 50) return { text: "text-[#ffd93d]", bg: "bg-[#ffd93d]" };
+  return { text: "text-[#ff6b6b]", bg: "bg-[#ff6b6b]" };
 }
 
 function getScoreLabel(score: number) {
@@ -30,14 +30,14 @@ export default function ScoreGauge({ score, size = "lg" }: ScoreGaugeProps) {
         <span className={`${text} font-bold ${isLarge ? "text-6xl" : "text-3xl"}`}>
           {score}
         </span>
-        <span className={`text-text-secondary font-medium ${isLarge ? "text-xl" : "text-sm"}`}>
+        <span className={`text-white/50 font-medium ${isLarge ? "text-xl" : "text-sm"}`}>
           / 100
         </span>
       </div>
       <span className={`${text} font-semibold ${isLarge ? "text-base" : "text-xs"}`}>
         {label}
       </span>
-      <div className={`${isLarge ? "w-48 h-2" : "w-full h-1.5"} bg-border-default rounded-full overflow-hidden`}>
+      <div className={`${isLarge ? "w-48 h-2" : "w-full h-1.5"} bg-white/15 rounded-full overflow-hidden`}>
         <div
           className={`h-full ${bg} rounded-full transition-all duration-500`}
           style={{ width: `${score}%` }}
