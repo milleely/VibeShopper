@@ -59,7 +59,7 @@ function StepIndicator({
               ? "bg-primary text-white"
               : state === "active"
                 ? "border-2 border-primary text-primary"
-                : "border-2 border-border-default text-text-disabled"
+                : "border-2 border-white/20 text-white/40"
           }
         `}
       >
@@ -82,7 +82,7 @@ function StepIndicator({
               ? "text-primary font-medium"
               : state === "active"
                 ? "text-primary font-medium"
-                : "text-text-disabled"
+                : "text-white/40"
           }
         `}
       >
@@ -117,7 +117,7 @@ function StepConnector({ completed }: { completed: boolean }) {
       <div
         className={`
           h-0.5 w-full rounded-full transition-colors duration-300
-          ${completed ? "bg-primary" : "bg-border-default"}
+          ${completed ? "bg-primary" : "bg-white/15"}
         `}
       />
     </div>
@@ -142,43 +142,43 @@ function CommentaryCard({ commentary }: { commentary: StepCommentary }) {
     : null;
 
   return (
-    <div className="rounded-lg border border-border-default bg-bg-surface px-4 py-3">
-      <h4 className="text-sm font-semibold text-text-primary">{label}</h4>
+    <div className="rounded-lg card-dark-nested px-4 py-3">
+      <h4 className="text-sm font-semibold text-white">{label}</h4>
 
       {commentary.narrative && (
-        <p className="mt-1 text-xs italic text-text-secondary leading-relaxed">
+        <p className="mt-1 text-xs italic text-white/70 leading-relaxed">
           {commentary.narrative}
         </p>
       )}
 
-      <div className="mt-2 text-xs text-text-secondary">
+      <div className="mt-2 text-xs text-white/60">
         {hasIssues ? (
           <span className="flex items-center gap-1 flex-wrap">
             {counts.high > 0 && (
-              <span className="text-severity-high-text font-medium">
+              <span className="text-[#ff6b6b] font-medium">
                 🔴 {counts.high} high
               </span>
             )}
             {counts.high > 0 && (counts.medium > 0 || counts.low > 0) && (
-              <span className="text-text-disabled">·</span>
+              <span className="text-white/30">·</span>
             )}
             {counts.medium > 0 && (
-              <span className="text-severity-medium-text font-medium">
+              <span className="text-[#ffd93d] font-medium">
                 🟡 {counts.medium} medium
               </span>
             )}
             {counts.medium > 0 && counts.low > 0 && (
-              <span className="text-text-disabled">·</span>
+              <span className="text-white/30">·</span>
             )}
             {counts.low > 0 && (
-              <span className="text-severity-low-text font-medium">
+              <span className="text-[#6bcf7f] font-medium">
                 🟢 {counts.low} low
               </span>
             )}
             {topIssue && (
               <>
-                <span className="text-text-disabled mx-0.5">—</span>
-                <span className="text-text-secondary truncate">
+                <span className="text-white/30 mx-0.5">—</span>
+                <span className="text-white/50 truncate">
                   {topIssue.description}
                 </span>
               </>
@@ -195,10 +195,10 @@ function CommentaryCard({ commentary }: { commentary: StepCommentary }) {
 /** Pulsing skeleton placeholder for the browser frame. */
 function BrowserSkeleton() {
   return (
-    <div className="flex h-full min-h-[400px] items-center justify-center bg-bg-app">
+    <div className="flex h-full min-h-[400px] items-center justify-center bg-[#0d0d0d]">
       <div className="flex flex-col items-center gap-3">
         <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <span className="text-sm text-text-secondary animate-pulse">
+        <span className="text-sm text-white/60 animate-pulse">
           Navigating to store...
         </span>
       </div>
@@ -209,13 +209,13 @@ function BrowserSkeleton() {
 /** Loading dots animation for commentary pending state. */
 function CommentaryPending() {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-border-default bg-bg-surface p-4">
+    <div className="flex items-center gap-2 rounded-lg card-dark-nested p-4">
       <div className="flex gap-1">
         <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
         <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
         <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
       </div>
-      <span className="text-sm text-text-secondary">
+      <span className="text-sm text-white/60">
         Analyzing current step...
       </span>
     </div>
@@ -291,7 +291,7 @@ export default function LiveViewer({
   return (
     <section className="space-y-6">
       {/* ---- Step Progress Bar ---- */}
-      <div className="bg-bg-surface rounded-xl border border-border-default shadow-[0_1px_2px_rgba(0,0,0,0.07)] px-6 py-4">
+      <div className="card-glass rounded-xl px-6 py-4">
         <div className="flex items-start">
           {CRAWL_STEPS.map((step, i) => {
             let state: "completed" | "active" | "pending";
@@ -326,14 +326,14 @@ export default function LiveViewer({
 
       {/* ---- Analyzing State ---- */}
       {status === "analyzing" && (
-        <div className="flex items-center justify-center rounded-xl border border-border-default bg-bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.07)] py-20">
+        <div className="flex items-center justify-center rounded-xl card-dark py-20">
           <div className="flex flex-col items-center gap-4">
             <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-primary border-t-transparent" />
             <div className="text-center">
-              <p className="text-base font-semibold text-text-primary">
+              <p className="text-base font-semibold text-white">
                 Generating your audit report...
               </p>
-              <p className="mt-1 text-sm text-text-secondary">
+              <p className="mt-1 text-sm text-white/60">
                 Synthesizing findings from all 5 pages into a comprehensive analysis
               </p>
             </div>
@@ -344,9 +344,9 @@ export default function LiveViewer({
       {/* ---- Split View ---- */}
       {status !== "analyzing" && <div className="flex gap-4 items-start">
         {/* Left: Browser Frame (3/5) */}
-        <div className="w-3/5 flex flex-col bg-bg-surface rounded-xl border border-border-default shadow-[0_1px_2px_rgba(0,0,0,0.07)] overflow-hidden">
+        <div className="w-3/5 flex flex-col card-dark rounded-xl overflow-hidden">
           {/* Browser Chrome */}
-          <div className="flex items-center gap-3 border-b border-border-default bg-bg-app px-4 py-2.5">
+          <div className="flex items-center gap-3 border-b border-white/10 bg-white/5 px-4 py-2.5">
             {/* Traffic-light dots */}
             <div className="flex gap-1.5">
               <span className="h-[10px] w-[10px] rounded-full bg-[#ec6a5e]" />
@@ -356,14 +356,14 @@ export default function LiveViewer({
 
             {/* URL bar */}
             <div className="flex-1 min-w-0">
-              <div className="rounded-md bg-[#ebebeb] px-3 py-1 text-xs text-text-secondary truncate">
+              <div className="rounded-md bg-white/10 px-3 py-1 text-xs text-white/60 truncate">
                 {currentUrl || "about:blank"}
               </div>
             </div>
           </div>
 
           {/* Viewport — crossfade between screenshots */}
-          <div className="max-h-[500px] overflow-auto bg-bg-app relative">
+          <div className="max-h-[500px] overflow-auto bg-[#0d0d0d] relative">
             {!latestScreenshot && <BrowserSkeleton />}
 
             {/* Bottom layer: previously visible screenshot */}
@@ -388,16 +388,16 @@ export default function LiveViewer({
 
           {/* Step description footer */}
           {currentStepLabel && (
-            <div className="border-t border-border-default bg-bg-app px-4 py-2 flex items-center justify-between">
-              <p className="text-xs text-text-secondary">
-                <span className="font-medium text-text-primary">
+            <div className="border-t border-white/10 bg-white/5 px-4 py-2 flex items-center justify-between">
+              <p className="text-xs text-white/60">
+                <span className="font-medium text-white">
                   {currentStepLabel}
                 </span>
                 {" — "}
                 {currentStepDescription}
               </p>
               {!fadingIn && nextSrcRef.current !== visibleSrc && latestScreenshot && (
-                <span className="text-[11px] text-text-disabled animate-pulse">
+                <span className="text-[11px] text-white/40 animate-pulse">
                   Scrolling...
                 </span>
               )}
@@ -406,10 +406,10 @@ export default function LiveViewer({
         </div>
 
         {/* Right: Commentary Panel (2/5) */}
-        <div className="w-2/5 max-h-[600px] flex flex-col bg-bg-surface rounded-xl border border-border-default shadow-[0_1px_2px_rgba(0,0,0,0.07)] overflow-hidden">
+        <div className="w-2/5 max-h-[600px] flex flex-col card-dark rounded-xl overflow-hidden">
           {/* Panel header */}
-          <div className="shrink-0 border-b border-border-default px-4 py-3">
-            <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+          <div className="shrink-0 border-b border-white/10 px-4 py-3">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
@@ -430,7 +430,7 @@ export default function LiveViewer({
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {commentaries.length === 0 && !isStepPending && (
               <div className="flex h-full items-center justify-center">
-                <p className="text-sm text-text-disabled text-center">
+                <p className="text-sm text-white/40 text-center">
                   Commentary will appear here as each step completes.
                 </p>
               </div>
