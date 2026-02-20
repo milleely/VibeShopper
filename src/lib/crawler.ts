@@ -13,7 +13,7 @@ export interface CrawlCallbacks {
     url: string,
     index: number
   ) => void;
-  onStepComplete: (step: CrawlStep) => Promise<void> | void;
+  onStepComplete: (step: CrawlStep) => void;
   onError: (step: CrawlStepName, error: string) => void;
 }
 
@@ -109,14 +109,15 @@ async function crawlHomepage(
   cb.onStepStart("homepage", stepDef.label, stepDef.description);
 
   try {
-    await page.goto(storeUrl, { waitUntil: "networkidle" });
+    await page.goto(storeUrl, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
     await dismissOverlays(page);
 
     const screenshots: string[] = [];
     screenshots.push(await captureAndEmit(page, "homepage", 0, cb));
 
     await page.evaluate(() => window.scrollBy(0, 600));
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
     screenshots.push(await captureAndEmit(page, "homepage", 1, cb));
 
     const html = await captureHtml(page);
@@ -130,7 +131,7 @@ async function crawlHomepage(
       navigationConfidence: "high",
       navigationMethod: `direct URL ${storeUrl}`,
     };
-    await cb.onStepComplete(step);
+    cb.onStepComplete(step);
     return step;
   } catch (err) {
     const error =
@@ -150,14 +151,15 @@ async function crawlCollections(
 
   try {
     const nav = await findCollectionsLink(page, storeUrl);
-    await page.goto(nav.url, { waitUntil: "networkidle" });
+    await page.goto(nav.url, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
     await dismissOverlays(page);
 
     const screenshots: string[] = [];
     screenshots.push(await captureAndEmit(page, "collections", 0, cb));
 
     await page.evaluate(() => window.scrollBy(0, 600));
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
     screenshots.push(await captureAndEmit(page, "collections", 1, cb));
 
     const html = await captureHtml(page);
@@ -172,7 +174,7 @@ async function crawlCollections(
       navigationConfidence: confidence,
       navigationMethod: nav.method,
     };
-    await cb.onStepComplete(step);
+    cb.onStepComplete(step);
     return step;
   } catch (err) {
     const error =
@@ -192,19 +194,20 @@ async function crawlProduct(
 
   try {
     const nav = await findProductLink(page, storeUrl);
-    await page.goto(nav.url, { waitUntil: "networkidle" });
+    await page.goto(nav.url, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
     await dismissOverlays(page);
 
     const screenshots: string[] = [];
     screenshots.push(await captureAndEmit(page, "product", 0, cb));
 
     await page.evaluate(() => window.scrollBy(0, 600));
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
     screenshots.push(await captureAndEmit(page, "product", 1, cb));
 
     // Scroll further to see reviews / additional details
     await page.evaluate(() => window.scrollBy(0, 600));
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
     screenshots.push(await captureAndEmit(page, "product", 2, cb));
 
     const html = await captureHtml(page);
@@ -219,7 +222,7 @@ async function crawlProduct(
       navigationConfidence: confidence,
       navigationMethod: nav.method,
     };
-    await cb.onStepComplete(step);
+    cb.onStepComplete(step);
     return step;
   } catch (err) {
     const error =
@@ -251,7 +254,7 @@ async function crawlAddToCart(
     let cartVerified = false;
     if (addToCartButton) {
       await addToCartButton.click();
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(1200);
       cartVerified = await verifyCartUpdate(page);
     }
 
@@ -270,7 +273,7 @@ async function crawlAddToCart(
       navigationMethod: "action on current product page",
       ...(!cartVerified ? { error: "add-to-cart attempted but could not be verified" } : {}),
     };
-    await cb.onStepComplete(step);
+    cb.onStepComplete(step);
     return step;
   } catch (err) {
     const error =
@@ -299,14 +302,15 @@ async function crawlCart(
   cb.onStepStart("cart", stepDef.label, stepDef.description);
 
   try {
-    await page.goto(`${storeUrl}/cart`, { waitUntil: "networkidle" });
+    await page.goto(`${storeUrl}/cart`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
     await dismissOverlays(page);
 
     const screenshots: string[] = [];
     screenshots.push(await captureAndEmit(page, "cart", 0, cb));
 
     await page.evaluate(() => window.scrollBy(0, 600));
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
     screenshots.push(await captureAndEmit(page, "cart", 1, cb));
 
     const html = await captureHtml(page);
@@ -320,7 +324,7 @@ async function crawlCart(
       navigationConfidence: "high",
       navigationMethod: "direct URL /cart",
     };
-    await cb.onStepComplete(step);
+    cb.onStepComplete(step);
     return step;
   } catch (err) {
     const error = err instanceof Error ? err.message : "Failed to load cart";
@@ -433,9 +437,9 @@ async function dismissOverlays(page: Page): Promise<void> {
   for (const selector of selectors) {
     try {
       const btn = page.locator(selector).first();
-      if (await btn.isVisible({ timeout: 800 })) {
+      if (await btn.isVisible({ timeout: 400 })) {
         await btn.click();
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(250);
       }
     } catch {
       // Try next
@@ -483,7 +487,7 @@ async function findCollectionsLink(
   for (const selector of navPatterns) {
     try {
       const link = page.locator(selector).first();
-      if (await link.isVisible({ timeout: 1000 })) {
+      if (await link.isVisible({ timeout: 600 })) {
         const href = await link.getAttribute("href");
         if (href) {
           const url = href.startsWith("http") ? href : `${storeUrl}${href}`;
@@ -504,7 +508,7 @@ async function findProductLink(
 ): Promise<NavResult> {
   try {
     const productLink = page.locator('a[href*="/products/"]').first();
-    if (await productLink.isVisible({ timeout: 2000 })) {
+    if (await productLink.isVisible({ timeout: 1200 })) {
       const href = await productLink.getAttribute("href");
       if (href) {
         const url = href.startsWith("http") ? href : `${storeUrl}${href}`;
@@ -546,9 +550,9 @@ async function selectVariant(page: Page): Promise<void> {
   for (const selector of clickSelectors) {
     try {
       const el = page.locator(selector).first();
-      if (await el.isVisible({ timeout: 1000 })) {
+      if (await el.isVisible({ timeout: 600 })) {
         await el.click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
         return;
       }
     } catch {
@@ -559,13 +563,13 @@ async function selectVariant(page: Page): Promise<void> {
   // Dropdown selectors — select second option (first is often "Select...")
   try {
     const select = page.locator('select[name*="option"]').first();
-    if (await select.isVisible({ timeout: 1000 })) {
+    if (await select.isVisible({ timeout: 600 })) {
       const options = await select.locator("option").all();
       if (options.length > 1) {
         const value = await options[1].getAttribute("value");
         if (value) {
           await select.selectOption(value);
-          await page.waitForTimeout(500);
+          await page.waitForTimeout(300);
           return;
         }
       }
@@ -586,7 +590,7 @@ async function verifyCartUpdate(page: Page): Promise<boolean> {
   for (const selector of countSelectors) {
     try {
       const el = page.locator(selector).first();
-      if (await el.isVisible({ timeout: 1000 })) {
+      if (await el.isVisible({ timeout: 600 })) {
         const text = (await el.textContent())?.trim() ?? "";
         if (text && text !== "0") return true;
       }
@@ -607,7 +611,7 @@ async function verifyCartUpdate(page: Page): Promise<boolean> {
   for (const selector of visibilitySelectors) {
     try {
       const el = page.locator(selector).first();
-      if (await el.isVisible({ timeout: 1000 })) return true;
+      if (await el.isVisible({ timeout: 600 })) return true;
     } catch {
       // Try next
     }
@@ -633,7 +637,7 @@ async function findAddToCartButton(page: Page) {
   for (const selector of selectors) {
     try {
       const btn = page.locator(selector).first();
-      if (await btn.isVisible({ timeout: 1500 })) {
+      if (await btn.isVisible({ timeout: 800 })) {
         return btn;
       }
     } catch {

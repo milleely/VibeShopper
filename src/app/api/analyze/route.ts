@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
       const encoder = new TextEncoder();
       const commentaries: StepCommentary[] = [];
       const allSteps: CrawlStep[] = [];
+      const commentaryPromises: Promise<void>[] = [];
 
       function sendEvent(event: SSEEvent) {
         const data = `data: ${JSON.stringify(event)}\n\n`;
@@ -54,25 +55,31 @@ export async function POST(request: NextRequest) {
             });
           },
 
-          onStepComplete: async (step: CrawlStep) => {
+          onStepComplete: (step: CrawlStep) => {
             allSteps.push(step);
 
-            try {
-              const commentary = await generateStepCommentary(
-                step,
-                validation.normalizedUrl
-              );
-              commentaries.push(commentary);
-              sendEvent({ type: "commentary", data: commentary });
-            } catch (err) {
-              console.error(`Commentary failed for ${step.name}:`, err);
-            }
+            // Fire commentary in background — don't block the crawl
+            const promise = generateStepCommentary(
+              step,
+              validation.normalizedUrl
+            )
+              .then((commentary) => {
+                commentaries.push(commentary);
+                sendEvent({ type: "commentary", data: commentary });
+              })
+              .catch((err) => {
+                console.error(`Commentary failed for ${step.name}:`, err);
+              });
+            commentaryPromises.push(promise);
           },
 
           onError: (step, error) => {
             sendEvent({ type: "error", data: { message: error, step } });
           },
         });
+
+        // Wait for any in-flight commentary before generating the audit report
+        await Promise.all(commentaryPromises);
 
         try {
           const report = await generateAuditReport(
