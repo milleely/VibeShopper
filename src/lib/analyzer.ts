@@ -96,8 +96,9 @@ export async function generateStepCommentary(
       "You're reviewing your cart before checkout. Evaluate: Is the summary clear? Shipping costs shown? Clear checkout button? Trust signals present?",
   };
 
-  // Send only the last screenshot per step to stay within rate limits
-  const lastScreenshot = step.screenshots?.[step.screenshots.length - 1];
+  // Send only the first screenshot (top of page) to stay within rate limits
+  // The first screenshot captures nav bar, brand, and above-the-fold content
+  const firstScreenshot = step.screenshots?.[0];
 
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
@@ -107,12 +108,12 @@ export async function generateStepCommentary(
       {
         role: "user",
         content: [
-          ...(lastScreenshot ? [{
+          ...(firstScreenshot ? [{
             type: "image" as const,
             source: {
               type: "base64" as const,
               media_type: "image/png" as const,
-              data: lastScreenshot,
+              data: firstScreenshot,
             },
           }] : []),
           {
