@@ -49,6 +49,11 @@ WHAT IS NOT AN ISSUE — Normal site features that humans expect:
 - Chat widgets in the corner (standard customer service feature)
 Only flag overlays as issues if they are TRULY intrusive: cannot be dismissed, appear repeatedly, block critical content with no close button, or auto-play video/audio.
 
+SCOPE RULES:
+- Describe ONLY what you can see on THIS page. Do not predict what will happen on pages you haven't visited yet.
+- If you are on a product page, do not claim "I can't add to cart" unless the Add to Cart button is visibly broken or missing. A grayed-out "Select a Size" prompt means the user needs to select a variant first — this is normal UX, not a bug.
+- If previous page context is provided, use it to maintain a consistent narrative. Don't contradict confirmed outcomes from earlier steps.
+
 Focus on issues a REAL FIRST-TIME SHOPPER would notice and care about:
 - Confusing navigation or unclear product categories
 - Missing product information (no price, no sizing, unclear descriptions)
@@ -75,7 +80,8 @@ Respond ONLY with valid JSON:
 
 export async function generateStepCommentary(
   step: CrawlStep,
-  storeUrl: string
+  storeUrl: string,
+  previousSteps: CrawlStep[] = []
 ): Promise<StepCommentary> {
   const stepContext: Record<CrawlStepName, string> = {
     homepage:
@@ -112,7 +118,7 @@ export async function generateStepCommentary(
 Current page: ${step.label} (${step.url})
 Navigation: ${step.navigationMethod || "unknown"} (confidence: ${step.navigationConfidence || "unknown"})
 Context: ${stepContext[step.name]}
-
+${previousSteps.length > 0 ? `\nPrevious pages visited:\n${previousSteps.map(s => `- ${s.label} (${s.url})${s.error ? ` — Issue: ${s.error}` : " — OK"}`).join("\n")}\n` : ""}
 Page HTML (trimmed):
 ${step.html?.slice(0, 20000) || "HTML not available"}
 ${step.error ? `\nNote: ${step.error}. Factor this into your analysis — do not report false findings based on incomplete data.` : ""}${step.navigationConfidence !== "high" ? `\nIMPORTANT: This page was reached via ${step.navigationMethod}. If the page appears empty or broken, this is likely a crawler navigation issue rather than a store problem. Frame findings accordingly — do not blame the store for pages our crawler may have reached incorrectly.` : ""}

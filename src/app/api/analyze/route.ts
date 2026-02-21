@@ -56,12 +56,14 @@ export async function POST(request: NextRequest) {
           },
 
           onStepComplete: (step: CrawlStep) => {
+            const previousSteps = [...allSteps];
             allSteps.push(step);
 
             // Fire commentary in background — don't block the crawl
             const promise = generateStepCommentary(
               step,
-              validation.normalizedUrl
+              validation.normalizedUrl,
+              previousSteps
             )
               .then((commentary) => {
                 commentaries.push(commentary);
