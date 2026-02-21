@@ -13,14 +13,18 @@ AI-powered Shopify store analyzer. Crawls a store like a first-time customer (5 
 
 ## Design System
 
-Shopify Polaris-inspired. Light mode only — no dark theme.
+Dark aurora theme with animated gradient background.
 
 - **Font**: Inter (loaded via `next/font/google`)
 - **Primary color**: `#008060` (Shopify green)
-- **Background**: `#f1f1f1` (app), `#ffffff` (cards)
-- **Cards**: `rounded-xl border border-[#e3e3e3] shadow-[0_1px_2px_rgba(0,0,0,0.07)]`
-- **Severity colors**: Red (high), Yellow (medium), Green (low) — tokens defined in `globals.css`
-- All colors are registered as Tailwind theme tokens (e.g., `bg-primary`, `text-severity-high-text`)
+- **Background**: Animated aurora gradient (`bg-aurora` class in `globals.css`)
+- **Cards**: Three-tier system:
+  - `.card-glass` — frosted glass (8% white bg, blur backdrop)
+  - `.card-dark` — solid dark (`rgba(2, 20, 16, 0.90)`)
+  - `.card-dark-nested` — subtle nested card (6% white bg)
+- **Severity colors**: `#ff6b6b` (high), `#ffd93d` (medium), `#6bcf7f` (low)
+- **Text**: White with opacity hierarchy — `text-white` (headings), `text-white/70` (body), `text-white/60` (secondary), `text-white/40` (muted)
+- All colors are registered as Tailwind theme tokens (e.g., `bg-primary`)
 
 ## Architecture
 

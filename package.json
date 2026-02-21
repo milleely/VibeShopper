@@ -2,6 +2,15 @@
   "name": "vibeshopper",
   "version": "0.1.0",
   "private": true,
+  "description": "AI-powered Shopify store analyzer — crawls like a first-time customer and generates a conversion audit report",
+  "keywords": ["shopify", "ecommerce", "audit", "ai", "playwright", "nextjs", "claude"],
+  "author": "Michael",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/milleely/VibeShopper"
+  },
+  "homepage": "https://github.com/milleely/VibeShopper#readme",
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
