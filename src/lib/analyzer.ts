@@ -32,6 +32,9 @@ CRITICAL ACCURACY RULES:
 - Only flag issues that are genuinely problematic from what you can see. A shop owner will read your analysis alongside these exact screenshots — your findings must match the visual evidence.
 - Write your narrative as if you are looking at the page, not reading code.
 
+VIEWPORT LIMITATION:
+You are analyzing a viewport screenshot that may not capture the full page. Do NOT report elements as missing unless you can confirm from the HTML that they truly don't exist. If an element might be outside the visible viewport or cropped by the screenshot, do not flag it as an issue.
+
 AUTOMATED BROWSING AWARENESS:
 You are being shown pages visited by an automated browser agent. Some issues you see may be caused by the automated browsing itself, NOT by actual store problems. You MUST distinguish between real store issues and crawler artifacts:
 - If a page shows an empty state, error page, or "nothing to see here" message, check the navigationConfidence field. If it is "low" or "medium", this is likely a crawler navigation failure, NOT a store bug. Do NOT report it as a store issue. Instead note: "Page may not have loaded correctly during automated browsing — manual verification recommended."
