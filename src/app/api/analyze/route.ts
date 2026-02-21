@@ -84,13 +84,19 @@ export async function POST(request: NextRequest) {
         await Promise.all(commentaryPromises);
 
         try {
+          // Sort commentaries to match step order (parallel execution = non-deterministic arrival)
+          const orderedCommentaries = allSteps.map(
+            (step) => commentaries.find((c) => c.step === step.name)!
+          ).filter(Boolean);
+
           const report = await generateAuditReport(
             validation.normalizedUrl,
             allSteps,
-            commentaries
+            orderedCommentaries
           );
           sendEvent({ type: "report", data: report });
         } catch (err) {
+          console.error("Audit report generation failed:", err);
           sendEvent({
             type: "error",
             data: {

@@ -96,6 +96,9 @@ export async function generateStepCommentary(
       "You're reviewing your cart before checkout. Evaluate: Is the summary clear? Shipping costs shown? Clear checkout button? Trust signals present?",
   };
 
+  // Send only the last screenshot per step to stay within rate limits
+  const lastScreenshot = step.screenshots?.[step.screenshots.length - 1];
+
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 1000,
@@ -104,14 +107,14 @@ export async function generateStepCommentary(
       {
         role: "user",
         content: [
-          ...(step.screenshots ?? []).map((s) => ({
+          ...(lastScreenshot ? [{
             type: "image" as const,
             source: {
               type: "base64" as const,
               media_type: "image/png" as const,
-              data: s,
+              data: lastScreenshot,
             },
-          })),
+          }] : []),
           {
             type: "text" as const,
             text: `Store: ${storeUrl}
@@ -120,7 +123,7 @@ Navigation: ${step.navigationMethod || "unknown"} (confidence: ${step.navigation
 Context: ${stepContext[step.name]}
 ${previousSteps.length > 0 ? `\nPrevious pages visited:\n${previousSteps.map(s => `- ${s.label} (${s.url})${s.error ? ` — Issue: ${s.error}` : " — OK"}`).join("\n")}\n` : ""}
 Page HTML (trimmed):
-${step.html?.slice(0, 20000) || "HTML not available"}
+${step.html?.slice(0, 8000) || "HTML not available"}
 ${step.error ? `\nNote: ${step.error}. Factor this into your analysis — do not report false findings based on incomplete data.` : ""}${step.navigationConfidence !== "high" ? `\nIMPORTANT: This page was reached via ${step.navigationMethod}. If the page appears empty or broken, this is likely a crawler navigation issue rather than a store problem. Frame findings accordingly — do not blame the store for pages our crawler may have reached incorrectly.` : ""}
 Analyze this page based on the screenshots above and the HTML. JSON only.`,
           },
@@ -158,10 +161,10 @@ Analyze this page based on the screenshots above and the HTML. JSON only.`,
 
 const AUDIT_REPORT_SYSTEM = `You are a senior e-commerce conversion specialist writing a comprehensive store audit after browsing an entire Shopify store as a first-time customer.
 
-You are provided with screenshots from each page of the browsing session. Base your audit on what you can SEE in the screenshots combined with the HTML analysis. Your findings must be visually verifiable — a shop owner will see these screenshots alongside your report. Never contradict what is clearly visible in the images.
+You are synthesizing findings from per-step analyses that were each grounded in screenshots and HTML. Your job is to consolidate these observations into a coherent, prioritized audit report.
 
 Your audit must be:
-- SPECIFIC: Every finding references something concrete you observed in the screenshots or HTML
+- SPECIFIC: Every finding references something concrete from the per-step analyses
 - ACTIONABLE: Every issue includes a one-sentence fix
 - PRIORITIZED: Issues ranked by revenue impact
 - HONEST: Acknowledge what's done well — if the store looks good visually, say so
@@ -241,51 +244,40 @@ export async function generateAuditReport(
   commentaries: StepCommentary[]
 ): Promise<AuditReport> {
   const stepSummaries = steps
-    .map((step, i) => {
-      const commentary = commentaries[i];
+    .map((step) => {
+      const commentary = commentaries.find((c) => c.step === step.name);
       return `
 === ${step.label} (${step.url}) ===
 ${commentary ? `Observations: ${commentary.observations.join("; ")}` : ""}
 ${commentary ? `Issues: ${commentary.issues.map((iss) => `[${iss.severity}] ${iss.description}`).join("; ")}` : ""}
 ${commentary ? `Positives: ${commentary.positives.join("; ")}` : ""}
-HTML excerpt: ${step.html?.slice(0, 15000) || "Not available"}
+${commentary ? `Narrative: ${commentary.narrative}` : ""}
 `;
     })
     .join("\n");
 
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
-    max_tokens: 4000,
+    max_tokens: 8000,
     system: AUDIT_REPORT_SYSTEM,
     messages: [
       {
         role: "user",
-        content: [
-          ...steps.flatMap((step) => {
-            const lastScreenshot = step.screenshots?.[step.screenshots.length - 1];
-            if (!lastScreenshot) return [];
-            return [
-              {
-                type: "image" as const,
-                source: {
-                  type: "base64" as const,
-                  media_type: "image/png" as const,
-                  data: lastScreenshot,
-                },
-              },
-            ];
-          }),
-          {
-            type: "text" as const,
-            text: `Full audit for: ${storeUrl}\n\nBrowsing session:\n${stepSummaries}\n\nThe screenshots above show each page in order. Synthesize into a comprehensive audit. Top 3 quickWins = highest impact, lowest effort. JSON only.`,
-          },
-        ],
+        content: `Full audit for: ${storeUrl}\n\nBrowsing session:\n${stepSummaries}\n\nSynthesize the per-step analyses above into a comprehensive audit. Top 3 quickWins = highest impact, lowest effort. JSON only.`,
       },
     ],
   });
 
   const text =
     message.content[0].type === "text" ? message.content[0].text : "";
+
+  if (message.stop_reason === "max_tokens") {
+    console.error(
+      "Audit report response was truncated (hit max_tokens limit). Response length:",
+      text.length
+    );
+    throw new Error("Audit report response was truncated — output exceeded token limit");
+  }
 
   try {
     const parsed = parseJsonResponse(text) as Record<string, unknown>;
@@ -299,6 +291,12 @@ HTML excerpt: ${step.html?.slice(0, 15000) || "Not available"}
       generatedAt: new Date().toISOString(),
     };
   } catch {
+    console.error(
+      "Failed to parse audit report JSON. stop_reason:",
+      message.stop_reason,
+      "Response preview:",
+      text.slice(0, 500)
+    );
     throw new Error("Failed to parse audit report from AI response");
   }
 }
