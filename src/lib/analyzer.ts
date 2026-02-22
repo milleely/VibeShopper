@@ -29,6 +29,8 @@ You are provided with SCREENSHOTS and HTML of each page. Base your observations 
 
 CRITICAL ACCURACY RULES:
 - NEVER claim something is missing if you can see it in the screenshot. If a cart drawer is open, acknowledge it. If product images clearly show the product category, state it. If a checkout button is visible, do not flag it as absent.
+- Before reporting ANY element as missing (prices, navigation, buttons, etc.), check the HTML for evidence it exists on the page. If the HTML contains the element, do not flag it as missing — it is likely just outside the visible viewport.
+- A cart drawer or slide-out with a close button (X) is standard, expected UX. Do NOT flag it as "blocking content" or "difficult to dismiss." Users know how to close drawers.
 - Only flag issues that are genuinely problematic from what you can see. A shop owner will read your analysis alongside these exact screenshots — your findings must match the visual evidence.
 - Write your narrative as if you are looking at the page, not reading code.
 
@@ -99,9 +101,22 @@ export async function generateStepCommentary(
       "You're reviewing your cart before checkout. Evaluate: Is the summary clear? Shipping costs shown? Clear checkout button? Trust signals present?",
   };
 
-  // Send only the first screenshot (top of page) to stay within rate limits
-  // The first screenshot captures nav bar, brand, and above-the-fold content
-  const firstScreenshot = step.screenshots?.[0];
+  const screenshotContext: Record<CrawlStepName, string> = {
+    homepage: "Screenshot shows the top of the page (above the fold).",
+    collections: "Screenshot shows the top of the collections page. Product listings with prices may extend below the visible area — check HTML for price data before flagging prices as missing.",
+    product: "Screenshot shows the top of the product page.",
+    add_to_cart: "Screenshot was taken AFTER clicking the add-to-cart button. If a cart drawer or notification is visible, the add-to-cart action succeeded — do not flag the absence of confirmation.",
+    cart: "Screenshot shows the cart page after scrolling. Cart contents, totals, and checkout button may be visible.",
+  };
+
+  // Pick the most informative screenshot per step:
+  // - Homepage/Collections/Product: first screenshot (above-the-fold, nav bar visible)
+  // - Add to Cart: last screenshot (post-click, shows cart drawer/confirmation)
+  // - Cart: last screenshot (scrolled view with contents and checkout)
+  const screenshotIndex = (step.name === "add_to_cart" || step.name === "cart")
+    ? (step.screenshots?.length ?? 1) - 1
+    : 0;
+  const screenshot = step.screenshots?.[screenshotIndex];
 
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
@@ -111,12 +126,12 @@ export async function generateStepCommentary(
       {
         role: "user",
         content: [
-          ...(firstScreenshot ? [{
+          ...(screenshot ? [{
             type: "image" as const,
             source: {
               type: "base64" as const,
               media_type: "image/png" as const,
-              data: firstScreenshot,
+              data: screenshot,
             },
           }] : []),
           {
@@ -125,6 +140,7 @@ export async function generateStepCommentary(
 Current page: ${step.label} (${step.url})
 Navigation: ${step.navigationMethod || "unknown"} (confidence: ${step.navigationConfidence || "unknown"})
 Context: ${stepContext[step.name]}
+Screenshot info: ${screenshotContext[step.name]}
 ${previousSteps.length > 0 ? `\nPrevious pages visited:\n${previousSteps.map(s => `- ${s.label} (${s.url})${s.error ? ` — Issue: ${s.error}` : " — OK"}`).join("\n")}\n` : ""}
 Page HTML (trimmed):
 ${step.html?.slice(0, 8000) || "HTML not available"}
