@@ -355,7 +355,8 @@ async function captureHtml(page: Page): Promise<string> {
 }
 
 function detectEmptyState(html: string): boolean {
-  const lower = html.toLowerCase();
+  // Only check the head + top of body where 404/error indicators appear
+  const lower = html.slice(0, 5000).toLowerCase();
   const emptyPatterns = [
     "nothing to see here",
     "no products found",
@@ -366,7 +367,6 @@ function detectEmptyState(html: string): boolean {
     "uh-oh",
     "doesn\u2019t exist",
     "doesn't exist",
-    "not available",
   ];
   return emptyPatterns.some((p) => lower.includes(p));
 }

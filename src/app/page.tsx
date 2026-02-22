@@ -125,7 +125,7 @@ export default function Home() {
                   VibeShopper
                 </h1>
                 <p className="mt-2 text-sm text-white/60">
-                  Your store in 90 seconds, through a customer&apos;s eyes.
+                  Your store, through a customer&apos;s eyes.
                 </p>
               </div>
 
