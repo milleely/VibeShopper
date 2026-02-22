@@ -109,7 +109,12 @@
 
 ## In Progress
 
-- [ ] Fix audit report generation failure — commentary ordering bug with parallel execution (ordering fix applied, needs testing)
+(none)
+
+## Recently Completed
+
+- [x] Fix audit report generation failure — commentary ordering bug with parallel execution
+- [x] Fix false "Homepage missing navigation elements" — added minimalist nav recognition rule to both AI prompts + synthesis guardrail in audit report prompt
 
 ## Planned / Ideas
 

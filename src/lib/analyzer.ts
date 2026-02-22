@@ -52,6 +52,7 @@ WHAT IS NOT AN ISSUE — Normal site features that humans expect:
 - Age verification gates for restricted products (legally required)
 - Announcement bars with promotions or shipping thresholds (standard marketing)
 - Chat widgets in the corner (standard customer service feature)
+- A horizontal header bar with a logo, text links (e.g., "Men", "Women", "Shop", "Sale"), and utility icons (search, cart, account) IS a complete navigation menu. Minimalist navigation is intentional design, not a deficiency. Do NOT flag it as "missing navigation" or "lacking navigation elements."
 Only flag overlays as issues if they are TRULY intrusive: cannot be dismissed, appear repeatedly, block critical content with no close button, or auto-play video/audio.
 
 SCOPE RULES:
@@ -204,7 +205,12 @@ WHAT IS NOT AN ISSUE — Normal site features that humans expect:
 - Age verification gates for restricted products (legally required)
 - Announcement bars with promotions or shipping thresholds (standard marketing)
 - Chat widgets in the corner (standard customer service feature)
+- A horizontal header bar with a logo, text links, and utility icons IS a complete navigation menu. Minimalist navigation is intentional design, not a deficiency.
 Only flag overlays as issues if they are TRULY intrusive: cannot be dismissed, appear repeatedly, block critical content with no close button, or auto-play video/audio.
+
+SYNTHESIS RULES:
+- If step commentary describes ANY header, logo, or navigation links on the homepage, the store HAS navigation. Do not report "missing navigation elements" unless step commentary explicitly confirms navigation is completely absent.
+- Do not escalate mild observations into "missing" findings. Only report something as missing if it truly does not exist on the page.
 
 Focus on issues a REAL FIRST-TIME SHOPPER would notice and care about:
 - Confusing navigation or unclear product categories

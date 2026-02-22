@@ -348,6 +348,8 @@ async function captureHtml(page: Page): Promise<string> {
   const cleaned = body
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<svg[\s\S]*?<\/svg>/gi, "")
+    .replace(/\s+data-[\w-]+="[^"]*"/gi, "")
     .replace(/\s+/g, " ")
     .trim();
 
@@ -457,6 +459,11 @@ async function dismissOverlays(page: Page): Promise<void> {
           parseInt(style.zIndex || "0", 10) > 999 &&
           el.getBoundingClientRect().height > window.innerHeight * 0.3
         ) {
+          // Don't hide navigation elements — header/nav bars are expected to be sticky with high z-index
+          const tag = el.tagName.toLowerCase();
+          if (tag === "header" || tag === "nav" || el.querySelector("nav")) {
+            continue;
+          }
           (el as HTMLElement).style.display = "none";
         }
       }
