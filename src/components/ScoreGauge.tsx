@@ -7,7 +7,8 @@ interface ScoreGaugeProps {
 
 function getScoreColor(score: number) {
   if (score >= 75) return { text: "text-[#6bcf7f]", bg: "bg-[#6bcf7f]" };
-  if (score >= 50) return { text: "text-[#ffd93d]", bg: "bg-[#ffd93d]" };
+  if (score >= 60) return { text: "text-[#ffd93d]", bg: "bg-[#ffd93d]" };
+  if (score >= 40) return { text: "text-[#ff8c42]", bg: "bg-[#ff8c42]" };
   return { text: "text-[#ff6b6b]", bg: "bg-[#ff6b6b]" };
 }
 

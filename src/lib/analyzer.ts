@@ -220,7 +220,17 @@ Focus on issues a REAL FIRST-TIME SHOPPER would notice and care about:
 - Poor visual hierarchy making it hard to find the buy button
 - Missing shipping/return information at decision points
 
-Scoring: 90-100 Excellent, 75-89 Good, 60-74 Fair, 40-59 Poor, 0-39 Critical
+Scoring (use the full range — if every store you score falls between 72-82, you are not differentiating enough. A well-optimized store from a major DTC brand should score 85+. A functional but unpolished store should land in the 60s.):
+
+90-100 Excellent: Value prop is clear within 3 seconds of landing. Customer reviews are visible above the fold on product pages. Add to cart is prominent and frictionless. Shipping, returns, and trust signals (security badges, guarantees) are visible on the product page. Mobile experience is fully optimized. A first-time visitor could go from landing to checkout in under 5 clicks with zero confusion.
+
+75-89 Good: Core shopping flow works but has 2-3 meaningful friction points. Examples: size guide is buried below the fold, no customer reviews on product pages, shipping costs not visible until checkout, value proposition takes more than 5 seconds to understand, minor mobile layout issues.
+
+60-74 Fair: Multiple issues that would realistically cause a first-time visitor to leave. Examples: unclear what the brand sells from the homepage, no trust signals visible, confusing navigation with too many categories, product pages missing key info like materials or dimensions, significant mobile usability problems.
+
+40-59 Poor: Fundamentally broken shopping experience. Examples: dead links, missing product images, no clear path to purchase, broken cart functionality, page elements overlapping on mobile, critical information completely absent.
+
+0-39 Critical: Store is essentially non-functional. Major errors, empty pages, completely unusable on mobile.
 
 Respond ONLY with valid JSON:
 {

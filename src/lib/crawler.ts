@@ -42,6 +42,13 @@ export async function crawlStore(
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     });
 
+    // Set Shopify geo-localization cookies to prevent country-selector popups
+    const domain = new URL(storeUrl).hostname;
+    await context.addCookies([
+      { name: "_shopify_country", value: "US", domain, path: "/" },
+      { name: "localization", value: "US", domain, path: "/" },
+    ]);
+
     const page = await context.newPage();
     page.setDefaultTimeout(15000);
 
@@ -402,6 +409,16 @@ async function dismissOverlays(page: Page): Promise<void> {
     '[class*="modal"] [class*="close"]',
     '[role="dialog"] button[class*="close"]',
     '[role="dialog"] [aria-label="Close"]',
+    // Close-character buttons (common in geo/country modals)
+    'button:has-text("×")',
+    'button:has-text("✕")',
+    'button:has-text("✖")',
+    // Case-insensitive aria-label matching on dialogs
+    '[role="dialog"] button[aria-label*="close" i]',
+    '[role="dialog"] button[aria-label*="dismiss" i]',
+    // SVG close icons inside buttons
+    'button:has(svg[class*="close"])',
+    '[role="dialog"] button:has(svg)',
     '[aria-label="Close"]',
     'button[class*="dismiss"]',
     // Newsletter / email capture popups
@@ -448,9 +465,12 @@ async function dismissOverlays(page: Page): Promise<void> {
     }
   }
 
-  // Second pass: remove any remaining fixed/sticky overlays via JS
+  // Second pass: for remaining fixed/sticky overlays, try to CLICK close buttons
+  // inside them before falling back to display:none. Clicking fires the store's JS
+  // handler which sets dismissal cookies, preventing the modal from re-triggering.
   try {
-    await page.evaluate(() => {
+    const overlayCloseClicked = await page.evaluate(() => {
+      let clicked = false;
       const els = document.querySelectorAll("*");
       for (const el of els) {
         const style = getComputedStyle(el);
@@ -459,15 +479,57 @@ async function dismissOverlays(page: Page): Promise<void> {
           parseInt(style.zIndex || "0", 10) > 999 &&
           el.getBoundingClientRect().height > window.innerHeight * 0.3
         ) {
-          // Don't hide navigation elements — header/nav bars are expected to be sticky with high z-index
           const tag = el.tagName.toLowerCase();
           if (tag === "header" || tag === "nav" || el.querySelector("nav")) {
             continue;
           }
-          (el as HTMLElement).style.display = "none";
+
+          // Try to find a close button inside this overlay and click it
+          let foundClose = false;
+          const closeSelectors = [
+            'button[aria-label*="close" i]',
+            'button[aria-label*="Close"]',
+            'button[class*="close"]',
+            '[aria-label="Close"]',
+            'button[class*="dismiss"]',
+          ];
+          for (const sel of closeSelectors) {
+            const btn = el.querySelector(sel) as HTMLElement | null;
+            if (btn) {
+              btn.click();
+              foundClose = true;
+              clicked = true;
+              break;
+            }
+          }
+
+          // Try buttons whose text is just an X-like character
+          if (!foundClose) {
+            const buttons = el.querySelectorAll("button");
+            for (const btn of buttons) {
+              const text = (btn.textContent || "").trim();
+              if (["×", "✕", "✖", "X", "x", "Close", "close"].includes(text)) {
+                (btn as HTMLElement).click();
+                foundClose = true;
+                clicked = true;
+                break;
+              }
+            }
+          }
+
+          // Last resort: hide the overlay
+          if (!foundClose) {
+            (el as HTMLElement).style.display = "none";
+          }
         }
       }
+      return clicked;
     });
+
+    // Give time for close handlers and animations to complete
+    if (overlayCloseClicked) {
+      await page.waitForTimeout(500);
+    }
   } catch {
     // Non-critical
   }
